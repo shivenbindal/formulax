@@ -45,7 +45,10 @@ const syllabus = {
 
 function getInlineUrl(url) {
   if (!url) return url
-  return url.replace('/upload/', '/upload/fl_inline/')
+  if (url.includes('/image/upload/')) {
+    return url.replace('/image/upload/', '/image/upload/fl_inline/')
+  }
+  return url
 }
 
 function FormulaFinder() {

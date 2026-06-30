@@ -1,9 +1,9 @@
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { findFormula } from '../services/groq'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../firebase/config'
 
 const syllabus = {
@@ -178,18 +178,50 @@ export default function Dashboard() {
   const [formulaSheet, setFormulaSheet] = useState(null)
   const [sheetLoading, setSheetLoading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [classPanelOpen, setClassPanelOpen] = useState(false)
+  const [classLoaded, setClassLoaded] = useState(false)
+
+  // Load the student's saved class from Firestore on mount
+  useEffect(() => {
+    const fetchSavedClass = async () => {
+      if (!user) return
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid))
+        if (snap.exists()) {
+          const data = snap.data()
+          if (data.class && syllabus[data.class]) {
+            setSelectedClass(data.class)
+            setSelectedSubject(Object.keys(syllabus[data.class])[0])
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setClassLoaded(true)
+      }
+    }
+    fetchSavedClass()
+  }, [user])
 
   const handleLogout = async () => {
     await logout()
     navigate('/')
   }
 
-  const handleClassChange = (c) => {
+  const handleClassChange = async (c) => {
     setSelectedClass(c)
     setSelectedChapter(null)
     setFormulaSheet(null)
     const subjects = Object.keys(syllabus[c] || {})
     setSelectedSubject(subjects[0])
+    setClassPanelOpen(false)
+    if (user) {
+      try {
+        await setDoc(doc(db, 'users', user.uid), { class: c }, { merge: true })
+      } catch (err) {
+        console.error(err)
+      }
+    }
   }
 
   const handleChapterClick = async (chapter) => {
@@ -217,11 +249,19 @@ export default function Dashboard() {
   const currentSubjects = Object.keys(syllabus[selectedClass] || {})
   const currentChapters = syllabus[selectedClass]?.[selectedSubject] || []
 
+  if (!classLoaded) {
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex font-['Inter']">
 
       {/* SIDEBAR */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white border-r border-black/6 flex flex-col h-screen sticky top-0`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white border-r border-black/6 flex flex-col h-screen sticky top-0 relative`}>
         <div className="p-5 border-b border-black/6 flex items-center justify-between">
           {sidebarOpen && <span className="font-black text-black tracking-tight">Formula X</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-neutral-400 hover:text-black transition-colors">
@@ -248,6 +288,20 @@ export default function Dashboard() {
           ))}
         </nav>
 
+        {/* CLASS SELECTOR */}
+        <div className="p-3 border-t border-black/6">
+          <button
+            onClick={() => setClassPanelOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 hover:text-black transition-all"
+          >
+            <span>🎓</span>
+            {sidebarOpen && (
+              <span className="flex-1 text-left font-medium text-black">{selectedClass}</span>
+            )}
+            {sidebarOpen && <span className="text-xs text-neutral-400">edit</span>}
+          </button>
+        </div>
+
         <div className="p-4 border-t border-black/6">
           <div className="flex items-center gap-3">
             <img src={user?.photoURL} className="w-8 h-8 rounded-full" />
@@ -259,6 +313,46 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* SLIDE-IN CLASS PANEL */}
+        <AnimatePresence>
+          {classPanelOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setClassPanelOpen(false)}
+                className="fixed inset-0 bg-black/30 z-40"
+              />
+              <motion.div
+                initial={{ x: -320 }}
+                animate={{ x: 0 }}
+                exit={{ x: -320 }}
+                transition={{ type: 'tween', duration: 0.25 }}
+                className="fixed top-0 left-0 h-screen w-72 bg-white border-r border-black/8 z-50 p-6 shadow-xl"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-black text-black">Change Class</h3>
+                  <button onClick={() => setClassPanelOpen(false)} className="text-neutral-400 hover:text-black text-sm">✕</button>
+                </div>
+                <div className="space-y-2">
+                  {Object.keys(syllabus).map(c => (
+                    <button
+                      key={c}
+                      onClick={() => handleClassChange(c)}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        selectedClass === c ? 'bg-black text-white' : 'border border-black/10 text-black hover:border-black/30'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </aside>
 
       {/* MAIN */}
@@ -270,19 +364,7 @@ export default function Dashboard() {
             <p className="text-xs text-neutral-400">Good morning,</p>
             <h1 className="text-base font-bold text-black">{user?.displayName?.split(' ')[0]}</h1>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {Object.keys(syllabus).map(c => (
-              <button
-                key={c}
-                onClick={() => handleClassChange(c)}
-                className={`text-xs px-3 py-1.5 rounded-full transition-all ${
-                  selectedClass === c ? 'bg-black text-white' : 'border border-black/10 text-neutral-500 hover:border-black/30'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <span className="text-xs text-neutral-400">{selectedClass}</span>
         </div>
 
         {/* EXPLORER */}

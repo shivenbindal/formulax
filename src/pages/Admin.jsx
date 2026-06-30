@@ -73,7 +73,7 @@ export default function Admin() {
         subject: selSubject,
         chapter: selChapter,
         fileUrl: data.secure_url,
-        fileType: data.resource_type,
+        fileType: data.format === 'pdf' ? 'pdf' : 'image',
         uploadedAt: new Date().toISOString(),
       })
 
@@ -115,7 +115,7 @@ export default function Admin() {
               {tab}
             </button>
           ))}
-          <button onClick={() => navigate('/dashboard')} className="text-sm text-neutral-400 hover:text-black transition-colors">Dashboard</button>
+          <span className="text-xs text-neutral-400">{user?.email}</span>
           <button onClick={() => { logout(); navigate('/') }} className="text-sm text-neutral-400 hover:text-black transition-colors">Sign out</button>
         </div>
       </div>

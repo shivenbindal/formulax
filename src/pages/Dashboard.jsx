@@ -43,6 +43,11 @@ const syllabus = {
   },
 }
 
+function getInlineUrl(url) {
+  if (!url) return url
+  return url.replace('/upload/', '/upload/fl_inline/')
+}
+
 function FormulaFinder() {
   const [question, setQuestion] = useState('')
   const [image, setImage] = useState(null)
@@ -350,7 +355,7 @@ export default function Dashboard() {
                     {formulaSheet.fileType === 'image' ? (
                       <img src={formulaSheet.fileUrl} className="w-full h-full object-contain" alt={selectedChapter} />
                     ) : (
-                      <iframe src={formulaSheet.fileUrl} className="w-full h-full border-0" title={selectedChapter} />
+                      <iframe src={getInlineUrl(formulaSheet.fileUrl)} className="w-full h-full border-0" title={selectedChapter} />
                     )}
                   </div>
                 )}

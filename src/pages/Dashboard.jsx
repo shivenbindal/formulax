@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { findFormula } from '../services/groq'
-import { collection, query, where, getDocs, doc, getDoc, setDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase/config'
 
 const syllabus = {
@@ -48,7 +48,11 @@ function getInlineUrl(url) {
   return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
 }
 
-function FormulaFinder() {
+function savedDocId(cls, subject, chapter) {
+  return encodeURIComponent(`${cls}|${subject}|${chapter}`)
+}
+
+function FormulaFinder({ dark }) {
   const [question, setQuestion] = useState('')
   const [image, setImage] = useState(null)
   const [imageBase64, setImageBase64] = useState(null)
@@ -85,11 +89,11 @@ function FormulaFinder() {
 
   return (
     <div className="p-8 max-w-2xl">
-      <h2 className="text-2xl font-black text-black mb-2">Formula Finder</h2>
+      <h2 className={`text-2xl font-black mb-2 ${dark ? 'text-white' : 'text-black'}`}>Formula Finder</h2>
       <p className="text-neutral-500 text-sm mb-8">Paste your question or upload an image — we'll tell you exactly which formula to use.</p>
 
       <div className="mb-4">
-        <label className="block w-full border-2 border-dashed border-black/10 rounded-2xl p-6 text-center cursor-pointer hover:border-black/30 transition-all">
+        <label className={`block w-full border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${dark ? 'border-white/15 hover:border-white/30' : 'border-black/10 hover:border-black/30'}`}>
           <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
           {image ? (
             <img src={image} className="max-h-48 mx-auto rounded-xl object-contain" />
@@ -111,7 +115,7 @@ function FormulaFinder() {
       <textarea
         value={question}
         onChange={e => setQuestion(e.target.value)}
-        className="w-full border border-black/10 rounded-2xl p-5 text-sm text-black placeholder-neutral-400 resize-none focus:outline-none focus:border-black/30 bg-white"
+        className={`w-full border rounded-2xl p-5 text-sm placeholder-neutral-400 resize-none focus:outline-none ${dark ? 'border-white/15 bg-neutral-900 text-white focus:border-white/30' : 'border-black/10 bg-white text-black focus:border-black/30'}`}
         rows={4}
         placeholder="Or type your question here e.g. A ball is thrown upward with velocity 20 m/s, find maximum height..."
       />
@@ -119,11 +123,11 @@ function FormulaFinder() {
       <button
         onClick={handleFind}
         disabled={loading || (!question.trim() && !imageBase64)}
-        className="mt-4 bg-black text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-neutral-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+        className={`mt-4 px-6 py-3 rounded-full text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 ${dark ? 'bg-white text-black hover:bg-neutral-200' : 'bg-black text-white hover:bg-neutral-800'}`}
       >
         {loading ? (
           <>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${dark ? 'border-black' : 'border-white'}`}></div>
             Finding formula...
           </>
         ) : 'Find Formula →'}
@@ -145,10 +149,10 @@ function FormulaFinder() {
           <p className="text-xs tracking-[0.15em] uppercase text-neutral-400 mb-4">Formula(s) to use</p>
           <div className="space-y-3 mb-4">
             {result.formulas?.map((f, i) => (
-              <div key={i} className="bg-white border border-black/8 rounded-2xl p-5">
+              <div key={i} className={`border rounded-2xl p-5 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-white border-black/8'}`}>
                 <div className="flex items-start justify-between gap-4 mb-2">
-                  <p className="text-sm font-semibold text-black">{f.name}</p>
-                  <code className="text-sm bg-neutral-50 border border-black/6 px-3 py-1 rounded-lg font-mono text-black whitespace-nowrap">
+                  <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-black'}`}>{f.name}</p>
+                  <code className={`text-sm border px-3 py-1 rounded-lg font-mono whitespace-nowrap ${dark ? 'bg-neutral-800 border-white/10 text-white' : 'bg-neutral-50 border-black/6 text-black'}`}>
                     {f.formula}
                   </code>
                 </div>
@@ -157,7 +161,7 @@ function FormulaFinder() {
             ))}
           </div>
           {result.hint && (
-            <div className="bg-neutral-50 border border-black/6 rounded-2xl p-5">
+            <div className={`border rounded-2xl p-5 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-neutral-50 border-black/6'}`}>
               <p className="text-xs font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-2">Approach Hint</p>
               <p className="text-sm text-neutral-600">{result.hint}</p>
             </div>
@@ -180,27 +184,50 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [classPanelOpen, setClassPanelOpen] = useState(false)
   const [classLoaded, setClassLoaded] = useState(false)
+  const [dark, setDark] = useState(false)
+  const [streak, setStreak] = useState(0)
+  const [isSaved, setIsSaved] = useState(false)
+  const [savedSheets, setSavedSheets] = useState([])
+  const [savedLoading, setSavedLoading] = useState(false)
 
-  // Load the student's saved class from Firestore on mount
+  // Load saved class, dark mode preference, and update streak on mount
   useEffect(() => {
-    const fetchSavedClass = async () => {
+    const init = async () => {
       if (!user) return
       try {
-        const snap = await getDoc(doc(db, 'users', user.uid))
-        if (snap.exists()) {
-          const data = snap.data()
-          if (data.class && syllabus[data.class]) {
-            setSelectedClass(data.class)
-            setSelectedSubject(Object.keys(syllabus[data.class])[0])
-          }
+        const userRef = doc(db, 'users', user.uid)
+        const snap = await getDoc(userRef)
+        const data = snap.exists() ? snap.data() : {}
+
+        if (data.class && syllabus[data.class]) {
+          setSelectedClass(data.class)
+          setSelectedSubject(Object.keys(syllabus[data.class])[0])
         }
+        if (typeof data.darkMode === 'boolean') {
+          setDark(data.darkMode)
+        }
+
+        // streak logic
+        const today = new Date().toISOString().split('T')[0]
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+        let newStreak = data.streak || 0
+        if (data.lastActive === today) {
+          // already counted
+        } else if (data.lastActive === yesterday) {
+          newStreak = newStreak + 1
+          await setDoc(userRef, { streak: newStreak, lastActive: today }, { merge: true })
+        } else {
+          newStreak = 1
+          await setDoc(userRef, { streak: newStreak, lastActive: today }, { merge: true })
+        }
+        setStreak(newStreak)
       } catch (err) {
         console.error(err)
       } finally {
         setClassLoaded(true)
       }
     }
-    fetchSavedClass()
+    init()
   }, [user])
 
   const handleLogout = async () => {
@@ -224,9 +251,22 @@ export default function Dashboard() {
     }
   }
 
+  const toggleDark = async () => {
+    const newVal = !dark
+    setDark(newVal)
+    if (user) {
+      try {
+        await setDoc(doc(db, 'users', user.uid), { darkMode: newVal }, { merge: true })
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+
   const handleChapterClick = async (chapter) => {
     setSelectedChapter(chapter)
     setFormulaSheet(null)
+    setIsSaved(false)
     setSheetLoading(true)
     try {
       const q = query(
@@ -239,6 +279,11 @@ export default function Dashboard() {
       if (!snap.empty) {
         setFormulaSheet(snap.docs[0].data())
       }
+      if (user) {
+        const savedRef = doc(db, 'users', user.uid, 'saved', savedDocId(selectedClass, selectedSubject, chapter))
+        const savedSnap = await getDoc(savedRef)
+        setIsSaved(savedSnap.exists())
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -246,24 +291,92 @@ export default function Dashboard() {
     }
   }
 
+  const handleToggleSave = async () => {
+    if (!user || !selectedChapter || !formulaSheet) return
+    const savedRef = doc(db, 'users', user.uid, 'saved', savedDocId(selectedClass, selectedSubject, selectedChapter))
+    try {
+      if (isSaved) {
+        await deleteDoc(savedRef)
+        setIsSaved(false)
+      } else {
+        await setDoc(savedRef, {
+          class: selectedClass,
+          subject: selectedSubject,
+          chapter: selectedChapter,
+          fileUrl: formulaSheet.fileUrl,
+          fileType: formulaSheet.fileType,
+          savedAt: new Date().toISOString(),
+        })
+        setIsSaved(true)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const fetchSavedSheets = async () => {
+    if (!user) return
+    setSavedLoading(true)
+    try {
+      const snap = await getDocs(collection(db, 'users', user.uid, 'saved'))
+      setSavedSheets(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavedLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'saved') fetchSavedSheets()
+  }, [activeTab])
+
+  const openSavedSheet = (s) => {
+    setSelectedClass(s.class)
+    setSelectedSubject(s.subject)
+    setSelectedChapter(s.chapter)
+    setFormulaSheet({ fileUrl: s.fileUrl, fileType: s.fileType })
+    setIsSaved(true)
+    setActiveTab('explorer')
+  }
+
+  const handleUnsaveFromList = async (s) => {
+    if (!user) return
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'saved', s.id))
+      setSavedSheets(prev => prev.filter(x => x.id !== s.id))
+      if (selectedChapter === s.chapter && selectedClass === s.class && selectedSubject === s.subject) {
+        setIsSaved(false)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const currentSubjects = Object.keys(syllabus[selectedClass] || {})
   const currentChapters = syllabus[selectedClass]?.[selectedSubject] || []
 
+  const bgMain = dark ? 'bg-neutral-950' : 'bg-[#FAFAF8]'
+  const bgSurface = dark ? 'bg-neutral-900' : 'bg-white'
+  const borderC = dark ? 'border-white/10' : 'border-black/6'
+  const borderC2 = dark ? 'border-white/10' : 'border-black/8'
+  const textPrimary = dark ? 'text-white' : 'text-black'
+
   if (!classLoaded) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+      <div className={`min-h-screen flex items-center justify-center ${bgMain}`}>
+        <div className={`w-6 h-6 border-2 border-t-transparent rounded-full animate-spin ${dark ? 'border-white' : 'border-black'}`}></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex font-['Inter']">
+    <div className={`min-h-screen flex font-['Inter'] ${bgMain}`}>
 
       {/* SIDEBAR */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white border-r border-black/6 flex flex-col h-screen sticky top-0 relative`}>
-        <div className="p-5 border-b border-black/6 flex items-center justify-between">
-          {sidebarOpen && <span className="font-black text-black tracking-tight">Formula X</span>}
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ${bgSurface} border-r ${borderC} flex flex-col h-screen sticky top-0 relative`}>
+        <div className={`p-5 border-b ${borderC} flex items-center justify-between`}>
+          {sidebarOpen && <span className={`font-black tracking-tight ${textPrimary}`}>Formula X</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-neutral-400 hover:text-black transition-colors">
             {sidebarOpen ? '←' : '→'}
           </button>
@@ -279,7 +392,9 @@ export default function Dashboard() {
               key={id}
               onClick={() => setActiveTab(id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
-                activeTab === id ? 'bg-black text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-black'
+                activeTab === id
+                  ? (dark ? 'bg-white text-black' : 'bg-black text-white')
+                  : (dark ? 'text-neutral-400 hover:bg-white/5 hover:text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-black')
               }`}
             >
               <span>{icon}</span>
@@ -288,26 +403,37 @@ export default function Dashboard() {
           ))}
         </nav>
 
+        {/* DARK MODE TOGGLE */}
+        <div className={`p-3 border-t ${borderC}`}>
+          <button
+            onClick={toggleDark}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${dark ? 'text-neutral-400 hover:bg-white/5 hover:text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-black'}`}
+          >
+            <span>{dark ? '☀️' : '🌙'}</span>
+            {sidebarOpen && <span className="flex-1 text-left">{dark ? 'Light Mode' : 'Dark Mode'}</span>}
+          </button>
+        </div>
+
         {/* CLASS SELECTOR */}
-        <div className="p-3 border-t border-black/6">
+        <div className={`p-3 border-t ${borderC}`}>
           <button
             onClick={() => setClassPanelOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 hover:text-black transition-all"
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${dark ? 'text-neutral-400 hover:bg-white/5 hover:text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-black'}`}
           >
             <span>🎓</span>
             {sidebarOpen && (
-              <span className="flex-1 text-left font-medium text-black">{selectedClass}</span>
+              <span className={`flex-1 text-left font-medium ${textPrimary}`}>{selectedClass}</span>
             )}
             {sidebarOpen && <span className="text-xs text-neutral-400">edit</span>}
           </button>
         </div>
 
-        <div className="p-4 border-t border-black/6">
+        <div className={`p-4 border-t ${borderC}`}>
           <div className="flex items-center gap-3">
             <img src={user?.photoURL} className="w-8 h-8 rounded-full" />
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-black truncate">{user?.displayName}</p>
+                <p className={`text-xs font-semibold truncate ${textPrimary}`}>{user?.displayName}</p>
                 <button onClick={handleLogout} className="text-xs text-neutral-400 hover:text-black transition-colors">Sign out</button>
               </div>
             )}
@@ -330,10 +456,10 @@ export default function Dashboard() {
                 animate={{ x: 0 }}
                 exit={{ x: -320 }}
                 transition={{ type: 'tween', duration: 0.25 }}
-                className="fixed top-0 left-0 h-screen w-72 bg-white border-r border-black/8 z-50 p-6 shadow-xl"
+                className={`fixed top-0 left-0 h-screen w-72 ${bgSurface} border-r ${borderC2} z-50 p-6 shadow-xl`}
               >
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-black text-black">Change Class</h3>
+                  <h3 className={`text-sm font-black ${textPrimary}`}>Change Class</h3>
                   <button onClick={() => setClassPanelOpen(false)} className="text-neutral-400 hover:text-black text-sm">✕</button>
                 </div>
                 <div className="space-y-2">
@@ -342,7 +468,9 @@ export default function Dashboard() {
                       key={c}
                       onClick={() => handleClassChange(c)}
                       className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        selectedClass === c ? 'bg-black text-white' : 'border border-black/10 text-black hover:border-black/30'
+                        selectedClass === c
+                          ? (dark ? 'bg-white text-black' : 'bg-black text-white')
+                          : (dark ? 'border border-white/10 text-white hover:border-white/30' : 'border border-black/10 text-black hover:border-black/30')
                       }`}
                     >
                       {c}
@@ -359,12 +487,20 @@ export default function Dashboard() {
       <main className="flex-1 overflow-auto">
 
         {/* HEADER */}
-        <div className="border-b border-black/6 bg-white px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className={`border-b ${borderC} ${bgSurface} px-8 py-4 flex items-center justify-between sticky top-0 z-10`}>
           <div>
             <p className="text-xs text-neutral-400">Good morning,</p>
-            <h1 className="text-base font-bold text-black">{user?.displayName?.split(' ')[0]}</h1>
+            <h1 className={`text-base font-bold ${textPrimary}`}>{user?.displayName?.split(' ')[0]}</h1>
           </div>
-          <span className="text-xs text-neutral-400">{selectedClass}</span>
+          <div className="flex items-center gap-4">
+            {streak > 0 && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${dark ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600'}`}>
+                <span>🔥</span>
+                <span>{streak} day{streak > 1 ? 's' : ''} streak</span>
+              </div>
+            )}
+            <span className="text-xs text-neutral-400">{selectedClass}</span>
+          </div>
         </div>
 
         {/* EXPLORER */}
@@ -378,7 +514,9 @@ export default function Dashboard() {
                   key={sub}
                   onClick={() => { setSelectedSubject(sub); setSelectedChapter(null); setFormulaSheet(null) }}
                   className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    selectedSubject === sub ? 'bg-black text-white' : 'border border-black/10 text-neutral-600 hover:border-black/30'
+                    selectedSubject === sub
+                      ? (dark ? 'bg-white text-black' : 'bg-black text-white')
+                      : (dark ? 'border border-white/10 text-neutral-300 hover:border-white/30' : 'border border-black/10 text-neutral-600 hover:border-black/30')
                   }`}
                 >
                   {sub}
@@ -395,11 +533,11 @@ export default function Dashboard() {
                   onClick={() => handleChapterClick(chapter)}
                   className={`text-left p-5 rounded-2xl border transition-all ${
                     selectedChapter === chapter
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white border-black/8 hover:border-black/20 text-black'
+                      ? (dark ? 'bg-white text-black border-white' : 'bg-black text-white border-black')
+                      : (dark ? `${bgSurface} border-white/10 hover:border-white/30 text-white` : 'bg-white border-black/8 hover:border-black/20 text-black')
                   }`}
                 >
-                  <p className={`text-xs mb-1 ${selectedChapter === chapter ? 'text-white/50' : 'text-neutral-400'}`}>
+                  <p className={`text-xs mb-1 ${selectedChapter === chapter ? (dark ? 'text-black/50' : 'text-white/50') : 'text-neutral-400'}`}>
                     {String(i + 1).padStart(2, '0')}
                   </p>
                   <p className="text-sm font-semibold">{chapter}</p>
@@ -411,29 +549,38 @@ export default function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-8 bg-white border border-black/8 rounded-2xl p-8"
+                className={`mt-8 ${bgSurface} border ${borderC2} rounded-2xl p-8`}
               >
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-xs text-neutral-400 mb-1">{selectedClass} · {selectedSubject}</p>
-                    <h2 className="text-2xl font-black text-black">{selectedChapter}</h2>
+                    <h2 className={`text-2xl font-black ${textPrimary}`}>{selectedChapter}</h2>
                   </div>
                   {formulaSheet && (
-                    <a href={formulaSheet.fileUrl} target="_blank" rel="noreferrer"
-                      className="bg-black text-white text-xs px-4 py-2 rounded-full hover:bg-neutral-800 transition-colors">
-                      Download →
-                    </a>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleToggleSave}
+                        className={`text-xl transition-transform hover:scale-110 ${isSaved ? 'text-red-500' : (dark ? 'text-neutral-500' : 'text-neutral-300')}`}
+                        title={isSaved ? 'Remove from My Sheets' : 'Save to My Sheets'}
+                      >
+                        {isSaved ? '♥' : '♡'}
+                      </button>
+                      <a href={formulaSheet.fileUrl} target="_blank" rel="noreferrer"
+                        className={`text-xs px-4 py-2 rounded-full transition-colors ${dark ? 'bg-white text-black hover:bg-neutral-200' : 'bg-black text-white hover:bg-neutral-800'}`}>
+                        Download →
+                      </a>
+                    </div>
                   )}
                 </div>
 
                 {sheetLoading && (
                   <div className="text-center py-12">
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <div className={`w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mx-auto ${dark ? 'border-white' : 'border-black'}`}></div>
                   </div>
                 )}
 
                 {!sheetLoading && formulaSheet && (
-                  <div className="bg-neutral-50 rounded-xl overflow-hidden" style={{ height: '600px' }}>
+                  <div className={`rounded-xl overflow-hidden ${dark ? 'bg-neutral-800' : 'bg-neutral-50'}`} style={{ height: '600px' }}>
                     {formulaSheet.fileType === 'image' ? (
                       <img src={formulaSheet.fileUrl} className="w-full h-full object-contain" alt={selectedChapter} />
                     ) : (
@@ -443,9 +590,9 @@ export default function Dashboard() {
                 )}
 
                 {!sheetLoading && !formulaSheet && (
-                  <div className="bg-neutral-50 rounded-xl p-10 text-center">
+                  <div className={`rounded-xl p-10 text-center ${dark ? 'bg-neutral-800' : 'bg-neutral-50'}`}>
                     <p className="text-2xl mb-3">📄</p>
-                    <p className="text-sm font-medium text-black mb-1">Formula sheet uploading soon</p>
+                    <p className={`text-sm font-medium mb-1 ${textPrimary}`}>Formula sheet uploading soon</p>
                     <p className="text-xs text-neutral-400">We're adding {selectedChapter} — check back shortly.</p>
                   </div>
                 )}
@@ -455,15 +602,44 @@ export default function Dashboard() {
         )}
 
         {/* FORMULA FINDER */}
-        {activeTab === 'formula-finder' && <FormulaFinder />}
+        {activeTab === 'formula-finder' && <FormulaFinder dark={dark} />}
 
         {/* SAVED */}
         {activeTab === 'saved' && (
           <div className="p-8">
-            <h2 className="text-2xl font-black text-black mb-8">My Sheets</h2>
-            <div className="text-center py-20 text-neutral-400 text-sm">
-              No saved sheets yet. Explore and save formula sheets.
-            </div>
+            <h2 className={`text-2xl font-black mb-8 ${textPrimary}`}>My Sheets</h2>
+
+            {savedLoading && (
+              <div className="text-center py-12">
+                <div className={`w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mx-auto ${dark ? 'border-white' : 'border-black'}`}></div>
+              </div>
+            )}
+
+            {!savedLoading && savedSheets.length === 0 && (
+              <div className="text-center py-20 text-neutral-400 text-sm">
+                No saved sheets yet. Explore and save formula sheets.
+              </div>
+            )}
+
+            {!savedLoading && savedSheets.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {savedSheets.map(s => (
+                  <div key={s.id} className={`${bgSurface} border ${borderC2} rounded-2xl p-5`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <p className="text-xs text-neutral-400">{s.class} · {s.subject}</p>
+                      <button onClick={() => handleUnsaveFromList(s)} className="text-red-500 text-lg leading-none">♥</button>
+                    </div>
+                    <p className={`text-sm font-semibold mb-4 ${textPrimary}`}>{s.chapter}</p>
+                    <button
+                      onClick={() => openSavedSheet(s)}
+                      className={`w-full text-xs py-2 rounded-full transition-colors ${dark ? 'bg-white text-black hover:bg-neutral-200' : 'bg-black text-white hover:bg-neutral-800'}`}
+                    >
+                      Open →
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

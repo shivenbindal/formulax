@@ -222,7 +222,7 @@ export default function Landing() {
           <a href="#" className="hover:text-black transition-colors">Terms</a>
           <a href="#" className="hover:text-black transition-colors">Contact</a>
         </div>
-        <span className="text-xs">© 2025 Formula X</span>
+        <span className="text-xs">© 2026 Formula X</span>
       </footer>
 
     </div>

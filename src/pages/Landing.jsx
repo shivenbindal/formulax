@@ -107,12 +107,12 @@ function TopicSearch() {
             <div className="space-y-3">
               {results.map((f, i) => (
                 <div key={i} className="bg-white border border-black/8 rounded-2xl p-5">
-                  <div className="flex items-start justify-between gap-4 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2">
                     <div>
                       <p className="text-sm font-semibold text-black">{f.name}</p>
                       {f.unit && <p className="text-xs text-neutral-400 mt-0.5">Unit: {f.unit}</p>}
                     </div>
-                    <code className="text-sm bg-neutral-50 border border-black/6 px-3 py-1.5 rounded-xl font-mono text-black whitespace-nowrap shrink-0">{f.formula}</code>
+                    <code className="text-sm bg-neutral-50 border border-black/6 px-3 py-1.5 rounded-xl font-mono text-black whitespace-normal break-words sm:whitespace-nowrap sm:shrink-0 max-w-full overflow-x-auto block">{f.formula}</code>
                   </div>
                   <p className="text-xs text-neutral-500">{f.description}</p>
                 </div>
@@ -198,7 +198,7 @@ function LandingFormulaFinder({ navigate }) {
                 <div className="space-y-3 mb-4">
                   {result.formulas?.map((f, i) => (
                     <div key={i} className="bg-white border border-black/8 rounded-2xl p-5">
-                      <div className="flex items-start justify-between gap-4 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2">
                         <p className="text-sm font-semibold text-black">{f.name}</p>
                         <code className="text-sm bg-neutral-50 border border-black/6 px-3 py-1 rounded-lg font-mono text-black whitespace-nowrap">{f.formula}</code>
                       </div>
@@ -243,14 +243,14 @@ export default function Landing() {
     <div className="min-h-screen bg-[#FAFAF8] font-['Inter']">
 
       {/* NAVBAR */}
-      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md border border-black/8 rounded-full px-8 py-3 flex items-center gap-10 shadow-sm whitespace-nowrap">
-        <span className="text-base font-semibold tracking-tight text-black">Formula X</span>
-        <div className="flex items-center gap-8 text-sm text-neutral-500">
+      <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md border border-black/8 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 flex items-center gap-4 sm:gap-10 shadow-sm w-[92%] sm:w-auto justify-between sm:justify-start">
+        <span className="text-sm sm:text-base font-semibold tracking-tight text-black whitespace-nowrap">Formula X</span>
+        <div className="hidden md:flex items-center gap-8 text-sm text-neutral-500 whitespace-nowrap">
           <a href="#search" className="hover:text-black transition-colors">Formula Search</a>
           <a href="#finder-free" className="hover:text-black transition-colors">Formula Finder</a>
           <a href="#how" className="hover:text-black transition-colors">How it works</a>
         </div>
-        <button onClick={() => navigate('/login')} className="bg-black text-white text-sm px-5 py-2 rounded-full hover:bg-neutral-800 transition-colors">
+        <button onClick={() => navigate('/login')} className="bg-black text-white text-xs sm:text-sm px-4 sm:px-5 py-2 rounded-full hover:bg-neutral-800 transition-colors whitespace-nowrap shrink-0">
           Get Started
         </button>
       </nav>
@@ -258,7 +258,7 @@ export default function Landing() {
       {/* HERO */}
       <section className="min-h-screen relative flex flex-col items-center justify-center text-center px-6 pt-32 overflow-hidden">
         {floatingFormulas.map((f, i) => (
-          <motion.div key={i} className={`absolute font-mono font-bold text-black/6 select-none pointer-events-none ${f.size}`}
+          <motion.div key={i} className={`hidden sm:block absolute font-mono font-bold text-black/6 select-none pointer-events-none ${f.size}`}
             style={{ left: f.x, top: f.y }} animate={{ y: [0, -12, 0] }}
             transition={{ duration: 4 + i * 0.3, repeat: Infinity, delay: f.delay, ease: 'easeInOut' }}>
             {f.text}
@@ -364,7 +364,7 @@ export default function Landing() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-black/8 py-8 px-6 flex items-center justify-between text-sm text-neutral-400">
+      <footer className="border-t border-black/8 py-8 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-neutral-400 text-center">
         <span className="font-semibold text-black">Formula X</span>
         <div className="flex gap-6 text-xs items-center">
           <a href="#" className="hover:text-black transition-colors">Privacy</a>

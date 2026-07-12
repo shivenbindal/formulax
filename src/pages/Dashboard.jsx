@@ -1,6 +1,6 @@
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { findFormula } from '../services/groq'
 import { collection, query, where, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore'
@@ -177,6 +177,7 @@ export default function Dashboard() {
   const [selectedChapter, setSelectedChapter] = useState(null)
   const [formulaSheet, setFormulaSheet] = useState(null)
   const [sheetLoading, setSheetLoading] = useState(false)
+  const sheetRef = useRef(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [classPanelOpen, setClassPanelOpen] = useState(false)
   const [classLoaded, setClassLoaded] = useState(false)
@@ -250,6 +251,7 @@ export default function Dashboard() {
 
   const handleChapterClick = async (chapter) => {
     setSelectedChapter(chapter); setFormulaSheet(null); setIsSaved(false); setSheetLoading(true)
+    setTimeout(() => sheetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     try {
       const q = query(collection(db, 'sheets'), where('class', '==', selectedClass), where('subject', '==', selectedSubject), where('chapter', '==', chapter))
       const snap = await getDocs(q)
@@ -451,7 +453,7 @@ export default function Dashboard() {
             </div>
 
             {selectedChapter && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className={`mt-8 ${surface} border ${border2} rounded-2xl p-8`}>
+              <motion.div ref={sheetRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className={`mt-8 ${surface} border ${border2} rounded-2xl p-8`}>
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-xs text-neutral-400 mb-1">{selectedClass} · {selectedSubject}</p>

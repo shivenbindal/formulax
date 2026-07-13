@@ -2,7 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import DashboardLayout from './components/DashboardLayout'
+import { DashboardProvider } from './context/DashboardContext'
+import FormulaFinderPage from './pages/dashboard/FormulaFinderPage'
+import ExplorerPage from './pages/dashboard/ExplorerPage'
+import MySheetsPage from './pages/dashboard/MySheetsPage'
+import HistoryPage from './pages/dashboard/HistoryPage'
 import Onboarding from './pages/Onboarding'
 import Admin from './pages/Admin'
 
@@ -28,7 +33,13 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/onboarding" element={<StudentRoute><Onboarding /></StudentRoute>} />
-          <Route path="/dashboard" element={<StudentRoute><Dashboard /></StudentRoute>} />
+          <Route path="/dashboard" element={<StudentRoute><DashboardProvider><DashboardLayout /></DashboardProvider></StudentRoute>}>
+            <Route index element={<Navigate to="formula-finder" replace />} />
+            <Route path="formula-finder" element={<FormulaFinderPage />} />
+            <Route path="explorer" element={<ExplorerPage />} />
+            <Route path="saved" element={<MySheetsPage />} />
+            <Route path="history" element={<HistoryPage />} />
+          </Route>
           <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         </Routes>
       </BrowserRouter>

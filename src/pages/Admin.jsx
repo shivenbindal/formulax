@@ -114,7 +114,7 @@ export default function Admin() {
 
       {/* HEADER */}
       <div className="border-b border-black/6 bg-white px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <span className="font-black text-black tracking-tight">Formula X — Admin</span>
+        <span className="font-black text-black tracking-tight">Formula Labs — Admin</span>
         <div className="flex items-center gap-5 flex-wrap">
           {tabs.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}

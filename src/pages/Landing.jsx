@@ -244,7 +244,7 @@ export default function Landing() {
 
       {/* NAVBAR */}
       <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md border border-black/8 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 flex items-center gap-4 sm:gap-10 shadow-sm w-[92%] sm:w-auto justify-between sm:justify-start">
-        <span className="text-sm sm:text-base font-semibold tracking-tight text-black whitespace-nowrap">Formula X</span>
+        <span className="text-sm sm:text-base font-semibold tracking-tight text-black whitespace-nowrap">Formula Labs</span>
         <div className="hidden md:flex items-center gap-8 text-sm text-neutral-500 whitespace-nowrap">
           <a href="#search" className="hover:text-black transition-colors">Formula Search</a>
           <a href="#finder-free" className="hover:text-black transition-colors">Formula Finder</a>
@@ -365,7 +365,7 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer className="border-t border-black/8 py-8 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-neutral-400 text-center">
-        <span className="font-semibold text-black">Formula X</span>
+        <span className="font-semibold text-black">Formula Labs</span>
         <div className="flex gap-6 text-xs items-center">
           <a href="#" className="hover:text-black transition-colors">Privacy</a>
           <a href="#" className="hover:text-black transition-colors">Terms</a>
@@ -375,7 +375,7 @@ export default function Landing() {
             Instagram
           </a>
         </div>
-        <span className="text-xs">© 2026 Formula X</span>
+        <span className="text-xs">© 2026 Formula Labs</span>
       </footer>
 
     </div>

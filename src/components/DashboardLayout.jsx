@@ -29,7 +29,7 @@ export default function DashboardLayout() {
       {/* SIDEBAR */}
       <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ${surface} border-r ${border} flex flex-col h-screen sticky top-0 relative`}>
         <div className={`p-5 border-b ${border} flex items-center justify-between`}>
-          {sidebarOpen && <span className={`font-black tracking-tight ${text}`}>Formula X</span>}
+          {sidebarOpen && <span className={`font-black tracking-tight ${text}`}>Formula Labs</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-neutral-400 hover:text-black transition-colors">
             {sidebarOpen ? '←' : '→'}
           </button>

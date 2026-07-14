@@ -106,24 +106,26 @@ export default function FormulaFinderPage() {
             </div>
           )}
 
-          <p className="text-xs tracking-[0.15em] uppercase text-neutral-400 mb-4">Formula(s) referenced</p>
-          <div className="space-y-3">
-            {result.formulas?.map((f, i) => (
-              <div key={i} className={`border rounded-2xl p-5 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-white border-black/8'}`}>
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-black'}`}>{f.name}</p>
-                  <code className={`text-sm border px-3 py-1 rounded-lg font-mono whitespace-nowrap ${dark ? 'bg-neutral-800 border-white/10 text-white' : 'bg-neutral-50 border-black/6 text-black'}`}>{f.formula}</code>
-                </div>
-                <p className="text-xs text-neutral-500 mb-3">{f.why}</p>
-                <button
-                  onClick={() => handleReport(f)}
-                  disabled={reported[f.name]}
-                  className={`text-xs transition-colors ${reported[f.name] ? 'text-green-500 cursor-default' : 'text-neutral-300 hover:text-red-400'}`}>
-                  {reported[f.name] ? '✓ Reported' : '⚑ Report wrong formula'}
-                </button>
+          {result.formulas?.length > 0 && (
+            <div className={`border rounded-2xl p-6 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-neutral-50 border-black/6'}`}>
+              <p className="text-xs font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-4">Formula(s) Referenced</p>
+              <div className="space-y-3">
+                {result.formulas.map((f, i) => (
+                  <div key={i} className={`border rounded-2xl p-5 ${dark ? 'bg-neutral-950 border-white/10' : 'bg-white border-black/8'}`}>
+                    <p className={`text-sm font-semibold mb-2 ${dark ? 'text-white' : 'text-black'}`}>{f.name}</p>
+                    <code className={`block w-full text-sm border px-3 py-2 rounded-lg font-mono whitespace-normal break-words leading-relaxed ${dark ? 'bg-neutral-800 border-white/10 text-white' : 'bg-white border-black/6 text-black'}`}>{f.formula}</code>
+                    <p className="text-xs text-neutral-500 mt-3 mb-3">{f.why}</p>
+                    <button
+                      onClick={() => handleReport(f)}
+                      disabled={reported[f.name]}
+                      className={`text-xs transition-colors ${reported[f.name] ? 'text-green-500 cursor-default' : 'text-neutral-300 hover:text-red-400'}`}>
+                      {reported[f.name] ? '✓ Reported' : '⚑ Report wrong formula'}
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </motion.div>
       )}
     </div>

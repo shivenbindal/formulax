@@ -40,7 +40,7 @@ export default function Onboarding() {
       <div className="w-full max-w-md">
 
         {/* LOGO */}
-        <p className="text-center text-sm font-black text-black mb-10 tracking-tight">Formula X</p>
+        <p className="text-center text-sm font-black text-black mb-10 tracking-tight">Formula Labs</p>
 
         <AnimatePresence mode="wait">
 

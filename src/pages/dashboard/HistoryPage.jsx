@@ -40,17 +40,37 @@ export default function HistoryPage() {
                 <span className="text-neutral-400 text-xs">{expandedHistory === h.id ? '▲' : '▼'}</span>
               </div>
               {expandedHistory === h.id && h.result && (
-                <div className="mt-4 space-y-2">
-                  {h.result.formulas?.map((f, i) => (
-                    <div key={i} className={`rounded-xl p-4 ${dark ? 'bg-neutral-800' : 'bg-neutral-50'}`}>
-                      <div className="flex items-start justify-between gap-3 mb-1">
-                        <p className={`text-xs font-semibold ${text}`}>{f.name}</p>
-                        <code className={`text-xs font-mono px-2 py-0.5 rounded ${dark ? 'bg-neutral-700 text-white' : 'bg-white text-black border border-black/8'}`}>{f.formula}</code>
+                <div className="mt-4 space-y-4">
+                  {h.result.approach?.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-2">The Approach</p>
+                      <div className="space-y-2">
+                        {h.result.approach.map((step, i) => (
+                          <div key={i} className={`rounded-xl p-3 flex gap-2 items-start ${dark ? 'bg-neutral-800' : 'bg-neutral-50'}`}>
+                            <span className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${dark ? 'bg-white text-black' : 'bg-black text-white'}`}>{i + 1}</span>
+                            <p className={`text-xs pt-0.5 ${text}`}>{step}</p>
+                          </div>
+                        ))}
                       </div>
-                      <p className="text-xs text-neutral-500">{f.why}</p>
                     </div>
-                  ))}
-                  {h.result.hint && <p className="text-xs text-neutral-400 mt-2 italic">{h.result.hint}</p>}
+                  )}
+
+                  {h.result.formulas?.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-2">Formula(s)</p>
+                      <div className="space-y-2">
+                        {h.result.formulas.map((f, i) => (
+                          <div key={i} className={`rounded-xl p-4 ${dark ? 'bg-neutral-800' : 'bg-neutral-50'}`}>
+                            <p className={`text-xs font-semibold mb-1 ${text}`}>{f.name}</p>
+                            <code className={`block text-xs font-mono px-2 py-1.5 rounded whitespace-normal break-words ${dark ? 'bg-neutral-700 text-white' : 'bg-white text-black border border-black/8'}`}>{f.formula}</code>
+                            <p className="text-xs text-neutral-500 mt-2">{f.why}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!h.result.approach && h.result.hint && <p className="text-xs text-neutral-400 mt-2 italic">{h.result.hint}</p>}
                 </div>
               )}
             </div>

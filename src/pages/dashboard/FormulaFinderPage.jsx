@@ -92,8 +92,22 @@ export default function FormulaFinderPage() {
 
       {result && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
-          <p className="text-xs tracking-[0.15em] uppercase text-neutral-400 mb-4">Formula(s) to use</p>
-          <div className="space-y-3 mb-4">
+          {result.approach?.length > 0 && (
+            <div className={`border rounded-2xl p-6 mb-6 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-neutral-50 border-black/6'}`}>
+              <p className="text-xs font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-4">The Approach</p>
+              <ol className="space-y-3">
+                {result.approach.map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${dark ? 'bg-white text-black' : 'bg-black text-white'}`}>{i + 1}</span>
+                    <p className={`text-sm pt-0.5 ${dark ? 'text-neutral-200' : 'text-neutral-700'}`}>{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          <p className="text-xs tracking-[0.15em] uppercase text-neutral-400 mb-4">Formula(s) referenced</p>
+          <div className="space-y-3">
             {result.formulas?.map((f, i) => (
               <div key={i} className={`border rounded-2xl p-5 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-white border-black/8'}`}>
                 <div className="flex items-start justify-between gap-4 mb-2">
@@ -110,12 +124,6 @@ export default function FormulaFinderPage() {
               </div>
             ))}
           </div>
-          {result.hint && (
-            <div className={`border rounded-2xl p-5 ${dark ? 'bg-neutral-900 border-white/10' : 'bg-neutral-50 border-black/6'}`}>
-              <p className="text-xs font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-2">Approach Hint</p>
-              <p className="text-sm text-neutral-600">{result.hint}</p>
-            </div>
-          )}
         </motion.div>
       )}
     </div>

@@ -307,7 +307,7 @@ export default function Landing() {
           <a href="/pricing" className="hover:text-white transition-colors">Pricing</a>
         </div>
         
-          href="/login"
+          <a href="/login"
           className="text-[13px] text-[#1D1D1F] bg-white px-[18px] py-2 rounded-full hover:bg-white/90 transition-colors"
         >
           Get started

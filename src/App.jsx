@@ -1,65 +1,104 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import Landing from './pages/Landing'
-import Login from './pages/Login'
-import DashboardLayout from './components/DashboardLayout'
-import { DashboardProvider } from './context/DashboardContext'
-import FormulaFinderPage from './pages/dashboard/FormulaFinderPage'
-import ExplorerPage from './pages/dashboard/ExplorerPage'
-import MySheetsPage from './pages/dashboard/MySheetsPage'
-import HistoryPage from './pages/dashboard/HistoryPage'
-import Onboarding from './pages/Onboarding'
-import Admin from './pages/Admin'
+import { AuthProvider } from './context/AuthContext'
+import { StudentRoute } from './components/StudentRoute'
+
+// Import all your pages
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
+import Study from './pages/Study'
+import FormulaFinderPage from './pages/FormulaFinderPage'
+import ExplorerPage from './pages/ExplorerPage'
+import MySheetsPage from './pages/MySheetsPage'
+import HistoryPage from './pages/HistoryPage'
 import Pricing from './pages/Pricing'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
-import { StudentRoute } from './components/StudentRoute'
-
-const ADMIN_EMAIL = 'shivenbindal@gmail.com'
-
-function PrivateRoute({ children }) {
-  const { user } = useAuth()
-  return user ? children : <Navigate to="/login" />
-}
-
-function StudentRoute({ children }) {
-  const { user } = useAuth()
-  if (!user) return <Navigate to="/login" />
-  if (user.email === ADMIN_EMAIL) return <Navigate to="/admin" />
-  return children
-}
+import Admin from './pages/Admin'
+import PrivateRoute from './components/PrivateRoute' // Your existing admin guard
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/onboarding" element={<StudentRoute><Onboarding /></StudentRoute>} />
-          <Route path="/dashboard" element={
-  <StudentRoute>
-    <Dashboard />
-  </StudentRoute>
-} />
-<Route path="/study" element={
-  <StudentRoute>
-    <Study />
-  </StudentRoute>
-} />
-            <Route index element={<Navigate to="formula-finder" replace />} />
-            <Route path="formula-finder" element={<FormulaFinderPage />} />
-            <Route path="explorer" element={<ExplorerPage />} />
-            <Route path="saved" element={<MySheetsPage />} />
-            <Route path="history" element={<HistoryPage />} />
-          </Route>
+          {/* ========== PUBLIC ROUTES ========== */}
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+
+          {/* ========== PROTECTED ROUTES (Student) ========== */}
+          <Route
+            path="/dashboard"
+            element={
+              <StudentRoute>
+                <DashboardPage />
+              </StudentRoute>
+            }
+          />
+
+          {/* Study section with nested routes */}
+          <Route
+            path="/study/*"
+            element={
+              <StudentRoute>
+                <Study />
+              </StudentRoute>
+            }
+          />
+
+          {/* Individual study routes (if accessed directly) */}
+          <Route
+            path="/formula-finder"
+            element={
+              <StudentRoute>
+                <FormulaFinderPage />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/explorer"
+            element={
+              <StudentRoute>
+                <ExplorerPage />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/saved"
+            element={
+              <StudentRoute>
+                <MySheetsPage />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <StudentRoute>
+                <HistoryPage />
+              </StudentRoute>
+            }
+          />
+
+          {/* ========== ADMIN ROUTES ========== */}
+          <Route
+            path="/admin"
+            element={
+              <StudentRoute>
+                <PrivateRoute>
+                  <Admin />
+                </PrivateRoute>
+              </StudentRoute>
+            }
+          />
+
+          {/* ========== FALLBACK ========== */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
 

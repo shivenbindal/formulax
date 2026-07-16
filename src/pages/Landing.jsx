@@ -11,6 +11,10 @@ function incrementFreeUses() { localStorage.setItem(FREE_USES_KEY, getFreeUses()
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
 
+// TODO: replace these two with your own Cloudinary URLs once uploaded
+const HERO_IMAGE_URL = 'https://res.cloudinary.com/dgkaho4y8/image/upload/YOUR_HERO_IMAGE.jpg'
+const MISSION_IMAGE_URL = 'https://res.cloudinary.com/dgkaho4y8/image/upload/YOUR_DESK_IMAGE.jpg'
+
 async function searchTopicFormulas(topic, cls) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -294,41 +298,84 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white font-['Inter']">
 
-      {/* HERO */}
-      <section className="bg-white">
-        <div className="text-center px-10 pt-24 pb-16 md:pt-28 md:pb-20 max-w-[720px] mx-auto">
-          <p className="text-[13px] text-[#86868B] tracking-[0.3px] mb-5">Class 9–12 · NEET · JEE</p>
+      {/* NAV — overlaid on hero image */}
+      <nav className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 max-w-[1100px] mx-auto">
+        <span className="text-[15px] font-semibold text-white">FormulaLabs</span>
+        <div className="hidden md:flex gap-8 text-[13px] text-white/80">
+          <a href="/explorer" className="hover:text-white transition-colors">Explorer</a>
+          <a href="/finder" className="hover:text-white transition-colors">Finder</a>
+          <a href="/pricing" className="hover:text-white transition-colors">Pricing</a>
+        </div>
+        
+          href="/login"
+          className="text-[13px] text-[#1D1D1F] bg-white px-[18px] py-2 rounded-full hover:bg-white/90 transition-colors"
+        >
+          Get started
+        </a>
+      </nav>
 
-          <h1 className="text-[40px] md:text-[56px] leading-[1.08] font-semibold tracking-[-1.5px] text-[#1D1D1F] mb-6">
-            Sharpen your approach
-            <br />
-            until it's instinct.
+      {/* HERO — full-bleed photo */}
+      <section className="relative h-[640px] flex items-end">
+        <img
+          src=https://res.cloudinary.com/dgkaho4y8/image/upload/v1784199745/iewek-gnos-hhUx08PuYpc-unsplash_qiie5a.jpg
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
+        <div className="relative z-[1] px-10 md:px-16 pb-20 max-w-[640px]">
+          <p className="text-[13px] text-white/70 tracking-[0.3px] mb-5">Class 9–12 · NEET · JEE</p>
+          <h1 className="text-[40px] md:text-[52px] leading-[1.1] font-semibold tracking-[-1.5px] text-white mb-6">
+            Sharpen your approach until it's instinct.
           </h1>
-
-          <p className="text-[17px] md:text-[19px] text-[#86868B] max-w-[460px] mx-auto mb-9 leading-relaxed">
-            Paste any question. See the exact approach and the formula behind it.
-            You still do the solving.
+          <p className="text-[16px] md:text-[18px] text-white/80 max-w-[440px] mb-8 leading-relaxed">
+            Paste any question. See the exact approach and the formula behind it. You still do the solving.
           </p>
-
-          <div className="flex gap-4 justify-center items-center">
+          <div className="flex gap-4 items-center">
             
-             <a href="/login"
-              className="text-[15px] text-white bg-[#1D1D1F] px-[26px] py-3 rounded-full hover:bg-black transition-colors"
+           <a   href="/login"
+              className="text-[15px] text-[#1D1D1F] bg-white px-[26px] py-3 rounded-full hover:bg-white/90 transition-colors"
             >
               Get started
             </a>
-            <a href="#how" className="text-[15px] text-[#0071E3] hover:underline">
+            <a href="#how" className="text-[15px] text-white hover:underline">
               See how it works ›
             </a>
           </div>
         </div>
+      </section>
 
-        <div className="text-center px-10 pb-24">
-          <div className="inline-block w-14 h-[2px] bg-[#D4FF00]" />
-          <p className="text-[13px] text-[#86868B] mt-3">
-            Every approach you learn here, you'll use for life.
-          </p>
+      {/* MISSION — dark editorial section, like the template's "Fueling Minds" block */}
+      <section className="bg-[#EDEDED] py-20 px-10 md:px-16">
+        <div className="max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+          <h2 className="text-[36px] md:text-[48px] leading-[1.05] font-semibold tracking-[-1.5px] text-[#1D1D1F]">
+            Build the instinct.
+            <br />
+            Become the topper.
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div>
+              <p className="text-[15px] text-[#3A3A3C] leading-relaxed">
+                FormulaLabs doesn't solve the question for you. It shows you the exact approach and formula,
+                so every question you practice sharpens the instinct you'll need on exam day.
+              </p>
+            </div>
+            <div>
+              <p className="text-[15px] text-[#3A3A3C] leading-relaxed">
+                Free chapter formula sheets across Class 9-12, NEET, and JEE, plus Formula Finder for the
+                questions that stump you. Built by a student, for students.
+              </p>
+            </div>
+          </div>
         </div>
+      </section>
+
+      {/* SECOND IMAGE MOMENT — desk/study photo, editorial full-width */}
+      <section className="relative h-[360px]">
+        <img
+          src=https://res.cloudinary.com/dgkaho4y8/image/upload/v1784199746/thought-catalog-505eectW54k-unsplash_umo8up.jpg
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
       </section>
 
       {/* STATS */}
@@ -412,7 +459,7 @@ export default function Landing() {
           that makes toppers.
         </h2>
         
-          <a href="/login"
+          href="/login"
           className="inline-block bg-[#1D1D1F] text-white px-10 py-4 rounded-full text-[15px] hover:bg-black transition-colors"
         >
           Get started

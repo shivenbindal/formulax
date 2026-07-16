@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { DashboardProvider } from './context/DashboardContext'  // ADD THIS
+import { DashboardProvider } from './context/DashboardContext'
 import DashboardLayout from './components/DashboardLayout'
 
 // Import pages
@@ -18,42 +18,44 @@ import ExplorerPage from './pages/dashboard/ExplorerPage'
 import MySheetsPage from './pages/dashboard/MySheetsPage'
 import HistoryPage from './pages/dashboard/HistoryPage'
 
+function DashboardRoutes() {
+  return (
+    <DashboardProvider>
+      <Routes>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route path="formula-finder" element={<FormulaFinderPage />} />
+          <Route path="explorer" element={<ExplorerPage />} />
+          <Route path="saved" element={<MySheetsPage />} />
+          <Route path="history" element={<HistoryPage />} />
+          <Route index element={<Navigate to="formula-finder" replace />} />
+        </Route>
+      </Routes>
+    </DashboardProvider>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <DashboardProvider>  {/* WRAP HERE */}
-          <Routes>
-            {/* ========== PUBLIC ROUTES ========== */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
+        <Routes>
+          {/* ========== PUBLIC ROUTES ========== */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
 
-            {/* ========== DASHBOARD ROUTES ========== */}
-            {/* Main dashboard layout with nested routes */}
-            <Route
-              path="/dashboard"
-              element={<DashboardLayout />}
-            >
-              {/* Nested routes inside DashboardLayout */}
-              <Route path="formula-finder" element={<FormulaFinderPage />} />
-              <Route path="explorer" element={<ExplorerPage />} />
-              <Route path="saved" element={<MySheetsPage />} />
-              <Route path="history" element={<HistoryPage />} />
-              {/* Redirect /dashboard to /dashboard/formula-finder */}
-              <Route index element={<Navigate to="formula-finder" replace />} />
-            </Route>
+          {/* ========== DASHBOARD ROUTES ========== */}
+          <Route path="/dashboard/*" element={<DashboardRoutes />} />
 
-            {/* ========== ADMIN ROUTE ========== */}
-            <Route path="/admin" element={<Admin />} />
+          {/* ========== ADMIN ROUTE ========== */}
+          <Route path="/admin" element={<Admin />} />
 
-            {/* ========== FALLBACK ========== */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </DashboardProvider>  {/* CLOSE HERE */}
+          {/* ========== FALLBACK ========== */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   )

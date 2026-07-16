@@ -257,21 +257,6 @@ export default function Landing() {
 
       {/* HERO */}
 <section className="bg-white">
-  {/* Nav */}
-  <nav className="flex items-center justify-between px-8 py-5 max-w-[1000px] mx-auto">
-    <span className="text-[15px] font-semibold text-[#1D1D1F]">FormulaLabs</span>
-    <div className="hidden md:flex gap-8 text-[13px] text-[#1D1D1F]">
-      <a href="/explorer" className="hover:text-[#86868B] transition-colors">Explorer</a>
-      <a href="/finder" className="hover:text-[#86868B] transition-colors">Finder</a>
-      <a href="/pricing" className="hover:text-[#86868B] transition-colors">Pricing</a>
-    </div>
-    
-     <a href="/login"
-      className="text-[13px] text-white bg-[#1D1D1F] px-[18px] py-2 rounded-full hover:bg-black transition-colors"
-    >
-      Get started
-    </a>
-  </nav>
 
   {/* Hero content */}
   <div className="text-center px-10 pt-20 pb-16 md:pt-24 md:pb-20 max-w-[720px] mx-auto">

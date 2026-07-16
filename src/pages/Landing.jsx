@@ -312,7 +312,7 @@ export default function Landing() {
 
           <div className="flex gap-4 justify-center items-center">
             
-              href="/login"
+             <a href="/login"
               className="text-[15px] text-white bg-[#1D1D1F] px-[26px] py-3 rounded-full hover:bg-black transition-colors"
             >
               Get started

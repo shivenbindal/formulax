@@ -25,11 +25,26 @@ export function DashboardProvider({ children }) {
 
   useEffect(() => {
     const init = async () => {
-      if (!user) return
+      if (!user) {
+        console.log('DashboardContext: No user, marking as loaded')
+        setClassLoaded(true)
+        return
+      }
+
+      // Set a timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.warn('DashboardContext: Initialization timeout, marking as loaded anyway')
+        setClassLoaded(true)
+      }, 5000)
+
       try {
+        console.log('DashboardContext: Initializing for user:', user.uid)
         const userRef = doc(db, 'users', user.uid)
         const snap = await getDoc(userRef)
         const data = snap.exists() ? snap.data() : {}
+        
+        console.log('DashboardContext: User data:', data)
+        
         if (data.class && syllabus[data.class]) {
           setSelectedClass(data.class)
           setSelectedSubject(Object.keys(syllabus[data.class])[0])
@@ -54,8 +69,15 @@ export function DashboardProvider({ children }) {
           userId: user.uid, userName: user.displayName, userEmail: user.email,
           action: 'session', timestamp: new Date().toISOString(),
         })
-      } catch (err) { console.error(err) }
-      finally { setClassLoaded(true) }
+
+        console.log('DashboardContext: Initialization complete')
+      } catch (err) {
+        console.error('DashboardContext: Initialization error:', err)
+      }
+      finally {
+        clearTimeout(timeout)
+        setClassLoaded(true)
+      }
     }
     init()
   }, [user])

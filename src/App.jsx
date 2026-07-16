@@ -13,6 +13,7 @@ import Admin from './pages/Admin'
 import Pricing from './pages/Pricing'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
+import { StudentRoute } from './components/StudentRoute'
 
 const ADMIN_EMAIL = 'shivenbindal@gmail.com'
 

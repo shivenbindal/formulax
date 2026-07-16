@@ -11,7 +11,6 @@ function incrementFreeUses() { localStorage.setItem(FREE_USES_KEY, getFreeUses()
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
 
-// TODO: replace these two with your own Cloudinary URLs once uploaded
 const HERO_IMAGE_URL = 'https://res.cloudinary.com/dgkaho4y8/image/upload/YOUR_HERO_IMAGE.jpg'
 const MISSION_IMAGE_URL = 'https://res.cloudinary.com/dgkaho4y8/image/upload/YOUR_DESK_IMAGE.jpg'
 
@@ -317,7 +316,7 @@ export default function Landing() {
       {/* HERO — full-bleed photo */}
       <section className="relative h-[640px] flex items-end">
         <img
-          src=https://res.cloudinary.com/dgkaho4y8/image/upload/v1784199745/iewek-gnos-hhUx08PuYpc-unsplash_qiie5a.jpg
+          src="https://res.cloudinary.com/dgkaho4y8/image/upload/v1784199745/iewek-gnos-hhUx08PuYpc-unsplash_qiie5a.jpg"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -372,7 +371,7 @@ export default function Landing() {
       {/* SECOND IMAGE MOMENT — desk/study photo, editorial full-width */}
       <section className="relative h-[360px]">
         <img
-          src=https://res.cloudinary.com/dgkaho4y8/image/upload/v1784199746/thought-catalog-505eectW54k-unsplash_umo8up.jpg
+          src="https://res.cloudinary.com/dgkaho4y8/image/upload/v1784199746/thought-catalog-505eectW54k-unsplash_umo8up.jpg"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />

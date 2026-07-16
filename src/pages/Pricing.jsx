@@ -11,7 +11,7 @@ export default function Pricing() {
         but the core tool stays free for students.
       </p>
       
-        href="/login"
+        <a href="/login"
         className="inline-block bg-[#1D1D1F] text-white px-10 py-4 rounded-full text-[15px] hover:bg-black transition-colors"
       >
         Get started free

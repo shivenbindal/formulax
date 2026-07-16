@@ -19,7 +19,7 @@ const syllabus = {
 }
 
 export default function Admin() {
-  const { user, logout } = useAuth()
+  const { user, logout, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('users')
   const [users, setUsers] = useState([])
@@ -38,9 +38,10 @@ export default function Admin() {
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
   useEffect(() => {
+    if (authLoading) return
     if (user?.email !== ADMIN_EMAIL) { navigate('/dashboard'); return }
     fetchData()
-  }, [user])
+  }, [user, authLoading])
 
   const fetchData = async () => {
     setLoading(true)
@@ -97,6 +98,7 @@ export default function Admin() {
     setReports(prev => prev.filter(r => r.id !== id))
   }
 
+  if (authLoading) return null
   if (user?.email !== ADMIN_EMAIL) return null
 
   const currentSubjects = Object.keys(syllabus[selClass] || {})

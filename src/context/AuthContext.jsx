@@ -7,32 +7,62 @@ const AuthContext = createContext()
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      setUser(user)
-      setLoading(false)
-    })
+    const unsub = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser)
+        setLoading(false)
+        setError(null)
+      },
+      (err) => {
+        setError(err)
+        setLoading(false)
+      }
+    )
     return unsub
   }, [])
 
   const loginWithGoogle = async () => {
     try {
+      setLoading(true)
       googleProvider.setCustomParameters({ prompt: 'select_account' })
       const result = await signInWithPopup(auth, googleProvider)
+      setLoading(false)
       return result
     } catch (err) {
-      console.error(err)
+      console.error('Login error:', err)
+      setError(err)
+      setLoading(false)
+      throw err
     }
   }
 
-  const logout = () => signOut(auth)
+  const logout = async () => {
+    try {
+      setLoading(true)
+      await signOut(auth)
+      setLoading(false)
+    } catch (err) {
+      console.error('Logout error:', err)
+      setError(err)
+      setLoading(false)
+    }
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, loading, error, loginWithGoogle, logout }}>
+      {children}
     </AuthContext.Provider>
   )
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+  return context
+}

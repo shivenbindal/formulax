@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { DashboardProvider } from './context/DashboardContext'  // ADD THIS
 import DashboardLayout from './components/DashboardLayout'
 
 // Import pages
@@ -21,36 +22,38 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* ========== PUBLIC ROUTES ========== */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
+        <DashboardProvider>  {/* WRAP HERE */}
+          <Routes>
+            {/* ========== PUBLIC ROUTES ========== */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
 
-          {/* ========== DASHBOARD ROUTES ========== */}
-          {/* Main dashboard layout with nested routes */}
-          <Route
-            path="/dashboard"
-            element={<DashboardLayout />}
-          >
-            {/* Nested routes inside DashboardLayout */}
-            <Route path="formula-finder" element={<FormulaFinderPage />} />
-            <Route path="explorer" element={<ExplorerPage />} />
-            <Route path="saved" element={<MySheetsPage />} />
-            <Route path="history" element={<HistoryPage />} />
-            {/* Redirect /dashboard to /dashboard/formula-finder */}
-            <Route index element={<Navigate to="formula-finder" replace />} />
-          </Route>
+            {/* ========== DASHBOARD ROUTES ========== */}
+            {/* Main dashboard layout with nested routes */}
+            <Route
+              path="/dashboard"
+              element={<DashboardLayout />}
+            >
+              {/* Nested routes inside DashboardLayout */}
+              <Route path="formula-finder" element={<FormulaFinderPage />} />
+              <Route path="explorer" element={<ExplorerPage />} />
+              <Route path="saved" element={<MySheetsPage />} />
+              <Route path="history" element={<HistoryPage />} />
+              {/* Redirect /dashboard to /dashboard/formula-finder */}
+              <Route index element={<Navigate to="formula-finder" replace />} />
+            </Route>
 
-          {/* ========== ADMIN ROUTE ========== */}
-          <Route path="/admin" element={<Admin />} />
+            {/* ========== ADMIN ROUTE ========== */}
+            <Route path="/admin" element={<Admin />} />
 
-          {/* ========== FALLBACK ========== */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* ========== FALLBACK ========== */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </DashboardProvider>  {/* CLOSE HERE */}
       </AuthProvider>
     </BrowserRouter>
   )

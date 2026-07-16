@@ -10,6 +10,9 @@ import MySheetsPage from './pages/dashboard/MySheetsPage'
 import HistoryPage from './pages/dashboard/HistoryPage'
 import Onboarding from './pages/Onboarding'
 import Admin from './pages/Admin'
+import Pricing from './pages/Pricing'
+import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
 
 const ADMIN_EMAIL = 'shivenbindal@gmail.com'
 
@@ -39,6 +42,9 @@ function App() {
             <Route path="explorer" element={<ExplorerPage />} />
             <Route path="saved" element={<MySheetsPage />} />
             <Route path="history" element={<HistoryPage />} />
+            <Route path="/pricing" element={<Pricing />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           </Route>
           <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         </Routes>

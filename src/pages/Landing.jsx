@@ -256,38 +256,64 @@ export default function Landing() {
       </nav>
 
       {/* HERO */}
-      <section className="min-h-screen relative flex flex-col items-center justify-center text-center px-6 pt-32 overflow-hidden">
-        {floatingFormulas.map((f, i) => (
-          <motion.div key={i} className={`hidden sm:block absolute font-mono font-bold text-black/6 select-none pointer-events-none ${f.size}`}
-            style={{ left: f.x, top: f.y }} animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 4 + i * 0.3, repeat: Infinity, delay: f.delay, ease: 'easeInOut' }}>
-            {f.text}
-          </motion.div>
-        ))}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: 'easeOut' }} className="relative z-10">
-          <h1 className="text-6xl md:text-8xl font-black text-black leading-none tracking-tighter mb-6">
-            Every formula.<br /><span className="text-neutral-300">One place.</span>
-          </h1>
-          <p className="text-lg text-neutral-500 max-w-xl mx-auto mb-10 leading-relaxed">
-            Formula sheets for Class 9–12, NEET and JEE — filtered by subject and chapter. Plus a free tool that tells you which formula solves your question.
-          </p>
-          <div className="flex items-center gap-4 justify-center flex-wrap">
-            <button onClick={() => navigate('/login')} className="bg-black text-white px-8 py-4 rounded-full text-sm font-medium hover:bg-neutral-800 transition-all hover:scale-105">
-              Explore Formula Sheets →
-            </button>
-            <a href="#finder-free" className="border border-black/15 text-black px-8 py-4 rounded-full text-sm font-medium hover:border-black/40 transition-all">
-              Try Formula Finder Free
-            </a>
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.4 }}
-          className="flex flex-wrap gap-3 justify-center mt-16 relative z-10">
-          {['Class 9', 'Class 10', 'Class 11', 'Class 12', 'NEET', 'JEE', 'CBSE Boards'].map(tag => (
-            <span key={tag} className="bg-white border border-black/10 text-neutral-600 text-xs px-4 py-2 rounded-full shadow-sm">{tag}</span>
-          ))}
-        </motion.div>
-      </section>
+<section className="bg-white">
+  {/* Nav */}
+  <nav className="flex items-center justify-between px-8 py-5 max-w-[1000px] mx-auto">
+    <span className="text-[15px] font-semibold text-[#1D1D1F]">FormulaLabs</span>
+    <div className="hidden md:flex gap-8 text-[13px] text-[#1D1D1F]">
+      <a href="/explorer" className="hover:text-[#86868B] transition-colors">Explorer</a>
+      <a href="/finder" className="hover:text-[#86868B] transition-colors">Finder</a>
+      <a href="/pricing" className="hover:text-[#86868B] transition-colors">Pricing</a>
+    </div>
+    
+      href="/login"
+      className="text-[13px] text-white bg-[#1D1D1F] px-[18px] py-2 rounded-full hover:bg-black transition-colors"
+    >
+      Get started
+    </a>
+  </nav>
 
+  {/* Hero content */}
+  <div className="text-center px-10 pt-20 pb-16 md:pt-24 md:pb-20 max-w-[720px] mx-auto">
+    <p className="text-[13px] text-[#86868B] tracking-[0.3px] mb-5">
+      Class 9–12 · NEET · JEE
+    </p>
+
+    <h1 className="text-[40px] md:text-[56px] leading-[1.08] font-semibold tracking-[-1.5px] text-[#1D1D1F] mb-6">
+      Sharpen your approach
+      <br />
+      until it's instinct.
+    </h1>
+
+    <p className="text-[17px] md:text-[19px] text-[#86868B] max-w-[460px] mx-auto mb-9 leading-relaxed">
+      Paste any question. See the exact approach and the formula behind it.
+      You still do the solving.
+    </p>
+
+    <div className="flex gap-4 justify-center items-center">
+      
+        href="/login"
+        className="text-[15px] text-white bg-[#1D1D1F] px-[26px] py-3 rounded-full hover:bg-black transition-colors"
+      >
+        Get started
+      </a>
+      
+        href="#how-it-works"
+        className="text-[15px] text-[#0071E3] hover:underline"
+      >
+        See how it works ›
+      </a>
+    </div>
+  </div>
+
+  {/* Accent mark + trust line */}
+  <div className="text-center px-10 pb-24">
+    <div className="inline-block w-14 h-[2px] bg-[#D4FF00]" />
+    <p className="text-[13px] text-[#86868B] mt-3">
+      3,200+ students building the habit that makes toppers
+    </p>
+  </div>
+</section>
       {/* STATS */}
       <section className="py-12 px-6 border-y border-black/6 bg-white">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">

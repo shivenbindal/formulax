@@ -36,7 +36,16 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/onboarding" element={<StudentRoute><Onboarding /></StudentRoute>} />
-          <Route path="/dashboard" element={<StudentRoute><DashboardProvider><DashboardLayout /></DashboardProvider></StudentRoute>}>
+          <Route path="/dashboard" element={
+  <StudentRoute>
+    <Dashboard />
+  </StudentRoute>
+} />
+<Route path="/study" element={
+  <StudentRoute>
+    <Study />
+  </StudentRoute>
+} />
             <Route index element={<Navigate to="formula-finder" replace />} />
             <Route path="formula-finder" element={<FormulaFinderPage />} />
             <Route path="explorer" element={<ExplorerPage />} />

@@ -33,6 +33,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/onboarding" element={<StudentRoute><Onboarding /></StudentRoute>} />
           <Route path="/dashboard" element={<StudentRoute><DashboardProvider><DashboardLayout /></DashboardProvider></StudentRoute>}>
             <Route index element={<Navigate to="formula-finder" replace />} />
             <Route path="formula-finder" element={<FormulaFinderPage />} />

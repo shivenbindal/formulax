@@ -378,7 +378,7 @@ export default function Landing() {
       </section>
 
       {/* STATS */}
-      <section className="py-14 px-6 border-t border-[#D2D2D7]">
+      <section className="py-14 px-6 border-t border-[#D2D2D7] bg-[#FAF6F2]">
         <div className="max-w-3xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { number: '6', label: 'Classes covered' },

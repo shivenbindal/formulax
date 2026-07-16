@@ -33,19 +33,16 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/onboarding" element={<StudentRoute><Onboarding /></StudentRoute>} />
           <Route path="/dashboard" element={<StudentRoute><DashboardProvider><DashboardLayout /></DashboardProvider></StudentRoute>}>
             <Route index element={<Navigate to="formula-finder" replace />} />
             <Route path="formula-finder" element={<FormulaFinderPage />} />
             <Route path="explorer" element={<ExplorerPage />} />
             <Route path="saved" element={<MySheetsPage />} />
             <Route path="history" element={<HistoryPage />} />
-            <Route path="/pricing" element={<Pricing />} />
+          </Route>
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
-          </Route>
           <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         </Routes>
       </BrowserRouter>

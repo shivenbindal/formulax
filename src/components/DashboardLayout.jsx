@@ -91,9 +91,10 @@ export default function DashboardLayout() {
                 <div className="space-y-2">
                   {Object.keys(syllabus).map(c => (
                     <button key={c} onClick={() => handleClassChange(c)}
-                      className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all ${selectedClass === c ? navActive : (dark ? 'border border-white/10 text-white hover:border-white/30' : 'border border-black/10 text-black hover:border-black/30')}`}>
-                      {c}
-                    </button>
+  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all ${selectedClass === c ? navActive : (dark ? 'border border-white/10 text-white hover:border-white/20' : 'border border-black/10 text-black hover:border-black/20')}`}
+  >
+  {c}
+</button>
                   ))}
                 </div>
               </motion.div>

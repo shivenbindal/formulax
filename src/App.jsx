@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { StudentRoute } from './components/Studentroute'
 import DashboardLayout from './components/DashboardLayout'
 
 // Import pages
@@ -31,15 +30,11 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
 
-          {/* ========== PROTECTED DASHBOARD ROUTES ========== */}
+          {/* ========== DASHBOARD ROUTES ========== */}
           {/* Main dashboard layout with nested routes */}
           <Route
             path="/dashboard"
-            element={
-              <StudentRoute>
-                <DashboardLayout />
-              </StudentRoute>
-            }
+            element={<DashboardLayout />}
           >
             {/* Nested routes inside DashboardLayout */}
             <Route path="formula-finder" element={<FormulaFinderPage />} />
@@ -51,14 +46,7 @@ function App() {
           </Route>
 
           {/* ========== ADMIN ROUTE ========== */}
-          <Route
-            path="/admin"
-            element={
-              <StudentRoute>
-                <Admin />
-              </StudentRoute>
-            }
-          />
+          <Route path="/admin" element={<Admin />} />
 
           {/* ========== FALLBACK ========== */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { DashboardProvider } from './context/DashboardContext'
 import DashboardLayout from './components/DashboardLayout'
+import { useAuth } from './context/AuthContext'
 
 // Import pages
 import Login from './pages/Login'
@@ -18,11 +19,20 @@ import ExplorerPage from './pages/dashboard/ExplorerPage'
 import MySheetsPage from './pages/dashboard/MySheetsPage'
 import HistoryPage from './pages/dashboard/HistoryPage'
 
-function DashboardRoutes() {
+// Simple auth check - redirect to landing if not logged in
+function ProtectedDashboard() {
+  const { user } = useAuth()
+
+  // Not logged in? Go to landing page instantly
+  if (!user) {
+    return <Navigate to="/" replace />
+  }
+
+  // Logged in? Show dashboard
   return (
     <DashboardProvider>
       <Routes>
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route path="/" element={<DashboardLayout />}>
           <Route path="formula-finder" element={<FormulaFinderPage />} />
           <Route path="explorer" element={<ExplorerPage />} />
           <Route path="saved" element={<MySheetsPage />} />
@@ -39,7 +49,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* ========== PUBLIC ROUTES ========== */}
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/onboarding" element={<Onboarding />} />
@@ -47,13 +57,13 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
 
-          {/* ========== DASHBOARD ROUTES ========== */}
-          <Route path="/dashboard/*" element={<DashboardRoutes />} />
+          {/* DASHBOARD ROUTES (Protected) */}
+          <Route path="/dashboard/*" element={<ProtectedDashboard />} />
 
-          {/* ========== ADMIN ROUTE ========== */}
+          {/* ADMIN */}
           <Route path="/admin" element={<Admin />} />
 
-          {/* ========== FALLBACK ========== */}
+          {/* FALLBACK */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

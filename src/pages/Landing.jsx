@@ -301,8 +301,8 @@ export default function Landing() {
       <nav className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 max-w-[1100px] mx-auto">
         <span className="text-[15px] font-semibold text-white">FormulaLabs</span>
         <div className="hidden md:flex gap-8 text-[13px] text-white/80">
-          <a href="/explorer" className="hover:text-white transition-colors">Explorer</a>
-          <a href="/finder" className="hover:text-white transition-colors">Finder</a>
+          <a href="#subjects" className="hover:text-white transition-colors">Explorer</a>
+          <a href="#finder-free" className="hover:text-white transition-colors">Finder</a>
           <a href="/pricing" className="hover:text-white transition-colors">Pricing</a>
         </div>
         
@@ -347,8 +347,7 @@ export default function Landing() {
       <section className="bg-[#EDEDED] py-20 px-10 md:px-16">
         <div className="max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
           <h2 className="text-[36px] md:text-[48px] leading-[1.05] font-semibold tracking-[-1.5px] text-[#1D1D1F]">
-            Build the instinct.
-            <br />
+            <span className="text-[#C4703D]">Build the instinct.</span><br />
             Become the topper.
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -418,7 +417,7 @@ export default function Landing() {
             <div
               key={subject}
               onClick={() => navigate('/login')}
-              className="border border-[#D2D2D7] rounded-2xl p-6 cursor-pointer hover:border-[#1D1D1F] transition-colors"
+              className="border border-[#D2D2D7] rounded-2xl p-6 cursor-pointer hover:border-[#C4703D] transition-colors"
             >
               <p className="text-[16px] font-semibold text-[#1D1D1F] mb-2">{subject}</p>
               <p className="text-[13px] text-[#86868B] leading-relaxed">{desc}</p>
@@ -442,7 +441,7 @@ export default function Landing() {
             { step: '03', title: 'Get your formula sheet', desc: 'Clean, exam-ready sheet. Or use Formula Finder to identify which formula solves your question.' },
           ].map(({ step, title, desc }) => (
             <div key={step} className="bg-white border border-[#D2D2D7] rounded-2xl p-8">
-              <p className="text-[13px] text-[#86868B] mb-4">{step}</p>
+              <p className="text-[13px] text-[#C4703D] font-semibold mb-4">{step}</p>
               <p className="text-[16px] font-semibold text-[#1D1D1F] mb-3">{title}</p>
               <p className="text-[13px] text-[#86868B] leading-relaxed">{desc}</p>
             </div>
@@ -451,7 +450,7 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="py-28 px-6 text-center">
+      <section className="py-28 px-6 text-center bg-[#FAF6F2]">
         <h2 className="text-[40px] md:text-[52px] leading-[1.1] font-semibold tracking-[-1.5px] text-[#1D1D1F] mb-6">
           Start building the habit
           <br />
@@ -469,8 +468,8 @@ export default function Landing() {
       <footer className="border-t border-[#D2D2D7] py-8 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-[#86868B] text-center">
         <span className="font-semibold text-[#1D1D1F]">FormulaLabs</span>
         <div className="flex gap-6 items-center">
-          <a href="#" className="hover:text-[#1D1D1F] transition-colors">Privacy</a>
-          <a href="#" className="hover:text-[#1D1D1F] transition-colors">Terms</a>
+          <a href="/privacy" className="hover:text-[#1D1D1F] transition-colors">Privacy</a>
+          <a href="/terms" className="hover:text-[#1D1D1F] transition-colors">Terms</a>
           <a href="mailto:shivenbindal@gmail.com" className="hover:text-[#1D1D1F] transition-colors">Contact</a>
           <a href="https://instagram.com/nev.sturn" target="_blank" rel="noreferrer" className="hover:text-[#1D1D1F] transition-colors">
             Instagram

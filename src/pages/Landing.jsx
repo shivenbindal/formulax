@@ -242,21 +242,23 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] font-['Inter']">
 
-      {/* NAVBAR */}
-      <nav className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md border border-black/8 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 flex items-center gap-4 sm:gap-10 shadow-sm w-[92%] sm:w-auto justify-between sm:justify-start">
-        <span className="text-sm sm:text-base font-semibold tracking-tight text-black whitespace-nowrap">Formula Labs</span>
-        <div className="hidden md:flex items-center gap-8 text-sm text-neutral-500 whitespace-nowrap">
-          <a href="#search" className="hover:text-black transition-colors">Formula Search</a>
-          <a href="#finder-free" className="hover:text-black transition-colors">Formula Finder</a>
-          <a href="#how" className="hover:text-black transition-colors">How it works</a>
-        </div>
-        <button onClick={() => navigate('/login')} className="bg-black text-white text-xs sm:text-sm px-4 sm:px-5 py-2 rounded-full hover:bg-neutral-800 transition-colors whitespace-nowrap shrink-0">
-          Get Started
-        </button>
-      </nav>
-
       {/* HERO */}
 <section className="bg-white">
+  {/* Nav */}
+  <nav className="flex items-center justify-between px-8 py-5 max-w-[1000px] mx-auto">
+    <span className="text-[15px] font-semibold text-[#1D1D1F]">FormulaLabs</span>
+    <div className="hidden md:flex gap-8 text-[13px] text-[#1D1D1F]">
+      <a href="/explorer" className="hover:text-[#86868B] transition-colors">Explorer</a>
+      <a href="/finder" className="hover:text-[#86868B] transition-colors">Finder</a>
+      <a href="/pricing" className="hover:text-[#86868B] transition-colors">Pricing</a>
+    </div>
+    
+      href="/login"
+      className="text-[13px] text-white bg-[#1D1D1F] px-[18px] py-2 rounded-full hover:bg-black transition-colors"
+    >
+      Get started
+    </a>
+  </nav>
 
   {/* Hero content */}
   <div className="text-center px-10 pt-20 pb-16 md:pt-24 md:pb-20 max-w-[720px] mx-auto">

@@ -70,8 +70,12 @@ Return ONLY valid JSON, no markdown, no extra text:
     } catch (err) {
       if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
       throw err
+    }
+  }
+  throw new Error('All API keys rate limited. Try again in a moment.')
+}
 
-      export async function parseTestQuestions(rawText, imageBase64 = null) {
+export async function parseTestQuestions(rawText, imageBase64 = null) {
   const messages = [
     {
       role: 'system',
@@ -125,10 +129,6 @@ Return ONLY valid JSON, no markdown, no extra text:
     } catch (err) {
       if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
       throw err
-    }
-  }
-  throw new Error('All API keys rate limited. Try again in a moment.')
-}
     }
   }
   throw new Error('All API keys rate limited. Try again in a moment.')

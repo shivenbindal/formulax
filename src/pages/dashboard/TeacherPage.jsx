@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
-  collection, collectionGroup, addDoc, query, where, getDocs, doc, setDoc,
+  collection, collectionGroup, addDoc, query, where, getDocs, doc, setDoc, deleteDoc,
 } from 'firebase/firestore'
-import { School, Plus, LogIn, Copy, Check } from 'lucide-react'
+import { School, Plus, LogIn, Copy, Check, FileText, Clock, Trash2, ArrowRight } from 'lucide-react'
 import { db } from '../../firebase/config'
 import { useDashboard } from '../../context/DashboardContext'
+import TestCreator from '../../components/TestCreator'
 
 const genCode = () => Math.random().toString(36).slice(2, 8).toUpperCase()
 
@@ -25,6 +26,12 @@ export default function TeacherPage() {
   const [joinError, setJoinError] = useState('')
   const [copied, setCopied] = useState(null)
 
+  // Classroom management
+  const [activeClassroom, setActiveClassroom] = useState(null)
+  const [tests, setTests] = useState([])
+  const [testsLoading, setTestsLoading] = useState(false)
+  const [creatingTest, setCreatingTest] = useState(false)
+
   useEffect(() => { if (user) { fetchOwned(); fetchJoined() } }, [user])
 
   const fetchOwned = async () => {
@@ -40,6 +47,30 @@ export default function TeacherPage() {
       return cSnap.docs[0] ? { id: cSnap.docs[0].id, ...cSnap.docs[0].data() } : null
     }))
     setJoined(classrooms.filter(Boolean))
+  }
+
+  const fetchTests = async (classroomId) => {
+    setTestsLoading(true)
+    try {
+      const snap = await getDocs(collection(db, 'classrooms', classroomId, 'tests'))
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      setTests(items)
+    } catch (err) { console.error(err) }
+    finally { setTestsLoading(false) }
+  }
+
+  const openClassroom = (c) => {
+    setActiveClassroom(c)
+    setCreatingTest(false)
+    fetchTests(c.id)
+  }
+
+  const deleteTest = async (testId) => {
+    try {
+      await deleteDoc(doc(db, 'classrooms', activeClassroom.id, 'tests', testId))
+      setTests(prev => prev.filter(t => t.id !== testId))
+    } catch (err) { console.error(err) }
   }
 
   const handleCreate = async () => {
@@ -80,6 +111,74 @@ export default function TeacherPage() {
     setTimeout(() => setCopied(null), 1500)
   }
 
+  // ---- CLASSROOM MANAGEMENT VIEW ----
+  if (activeClassroom) {
+    return (
+      <div className="p-6 md:p-8 max-w-3xl space-y-6">
+        <button
+          onClick={() => setActiveClassroom(null)}
+          className="text-[13px] text-neutral-400 hover:text-black transition-colors"
+        >
+          ← Back to classrooms
+        </button>
+
+        <div>
+          <h2 className={`text-xl md:text-2xl font-semibold tracking-[-0.3px] mb-1 ${text}`}>{activeClassroom.name}</h2>
+          <p className="text-neutral-400 text-[13px]">Code: {activeClassroom.code}</p>
+        </div>
+
+        {creatingTest ? (
+          <TestCreator
+            classroomId={activeClassroom.id}
+            user={user}
+            dark={dark}
+            text={text}
+            onClose={() => setCreatingTest(false)}
+            onSaved={() => { setCreatingTest(false); fetchTests(activeClassroom.id) }}
+          />
+        ) : (
+          <>
+            <button
+              onClick={() => setCreatingTest(true)}
+              className={`px-5 py-2.5 rounded-xl text-[13px] font-medium flex items-center justify-center gap-1.5 ${btnC}`}
+            >
+              <Plus size={14} /> New Test
+            </button>
+
+            <div className={`border shadow-sm rounded-2xl p-6 ${cardC}`}>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-neutral-400 mb-4">Tests</p>
+              {testsLoading && <p className="text-[13px] text-neutral-400">Loading...</p>}
+              {!testsLoading && tests.length === 0 && (
+                <p className="text-[13px] text-neutral-400">No tests yet. Create your first one above.</p>
+              )}
+              <div className="space-y-2">
+                {tests.map(t => (
+                  <div key={t.id} className={`flex items-center justify-between px-4 py-3 rounded-xl ${dark ? 'bg-white/5' : 'bg-black/[0.03]'}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText size={15} strokeWidth={2} className="text-neutral-400 shrink-0" />
+                      <div className="min-w-0">
+                        <p className={`text-[13px] font-medium truncate ${text}`}>{t.title}</p>
+                        <p className="text-[11px] text-neutral-400 flex items-center gap-2">
+                          <span className="flex items-center gap-1"><Clock size={11} /> {t.timeLimitMinutes} min</span>
+                          <span>·</span>
+                          <span>{t.questions?.length || 0} questions</span>
+                        </p>
+                      </div>
+                    </div>
+                    <button onClick={() => deleteTest(t.id)} className="text-neutral-400 hover:text-red-500 transition-colors shrink-0">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  // ---- CLASSROOM LIST / CREATE / JOIN VIEW ----
   return (
     <div className="p-6 md:p-8 max-w-3xl space-y-8">
       <div>
@@ -108,11 +207,17 @@ export default function TeacherPage() {
                   <School size={15} strokeWidth={2} className="text-neutral-400" />
                   <p className={`text-[13px] font-medium ${text}`}>{c.name}</p>
                 </div>
-                <button onClick={() => copyCode(c.code)}
-                  className="flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-black transition-colors">
-                  {copied === c.code ? <Check size={12} /> : <Copy size={12} />}
-                  {c.code}
-                </button>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => copyCode(c.code)}
+                    className="flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-black transition-colors">
+                    {copied === c.code ? <Check size={12} /> : <Copy size={12} />}
+                    {c.code}
+                  </button>
+                  <button onClick={() => openClassroom(c)}
+                    className="flex items-center gap-1 text-[11px] font-medium text-blue-500 hover:text-blue-600 transition-colors">
+                    Manage <ArrowRight size={12} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

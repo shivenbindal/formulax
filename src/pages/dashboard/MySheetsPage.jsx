@@ -4,7 +4,7 @@ import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore'
 import { motion } from 'framer-motion'
 import { db } from '../../firebase/config'
 import { useDashboard } from '../../context/DashboardContext'
-import { Heart, BookmarkOpen, Trash2, ChevronRight } from 'lucide-react'
+import { Heart, Bookmark, Trash2, ChevronRight } from 'lucide-react'
 
 export default function MySheetsPage() {
   const { user, dark, text, bg } = useDashboard()
@@ -82,7 +82,7 @@ export default function MySheetsPage() {
                 dark ? 'bg-neutral-900/50 border-white/10' : 'bg-white/80 border-white/40'
               } backdrop-blur-sm`}
             >
-              <BookmarkOpen size={48} className={`mx-auto mb-4 ${dark ? 'text-neutral-700' : 'text-neutral-300'}`} />
+              <Bookmark size={48} className={`mx-auto mb-4 ${dark ? 'text-neutral-700' : 'text-neutral-300'}`} />
               <p className={`text-lg font-semibold mb-2 ${text}`}>No saved sheets yet</p>
               <p className={`text-sm ${dark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                 Head to Explorer and save your first formula sheet

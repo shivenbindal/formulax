@@ -21,6 +21,7 @@ import HistoryPage from './pages/dashboard/HistoryPage'
 import SearchPage from './pages/dashboard/SearchPage'
 import CommunityPage from './pages/dashboard/CommunityPage'
 import TeacherPage from './pages/dashboard/TeacherPage'
+import TakeTestPage from './pages/dashboard/TakeTestPage'
 
 function ProtectedDashboard() {
   const { user } = useAuth()
@@ -37,6 +38,7 @@ function ProtectedDashboard() {
           <Route path="search" element={<SearchPage />} />
           <Route path="community" element={<CommunityPage />} />
           <Route path="teacher" element={<TeacherPage />} />
+          <Route path="test/:classroomId/:testId" element={<TakeTestPage />} />
           <Route index element={<Navigate to="explorer" replace />} />
         </Route>
       </Routes>

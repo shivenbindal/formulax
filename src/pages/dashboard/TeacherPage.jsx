@@ -10,7 +10,17 @@ import TestCreator from '../../components/TestCreator'
 const genCode = () => Math.random().toString(36).slice(2, 8).toUpperCase()
 
 export default function TeacherPage() {
-  const { user, dark, text } = useDashboard()
+  const { user, dark, text, role } = useDashboard()
+
+  if (role !== 'teacher') {
+    return (
+      <div className="p-6 md:p-8 max-w-md mx-auto text-center py-20">
+        <School size={32} className="mx-auto mb-4 text-neutral-300" />
+        <p className={`text-lg font-semibold mb-2 ${text}`}>Teacher access only</p>
+        <p className="text-neutral-400 text-[13px]">This section is for teacher accounts.</p>
+      </div>
+    )
+  }
   const cardC = dark ? 'bg-neutral-900 border-white/[0.06]' : 'bg-white border-black/[0.04]'
   const inputC = dark ? 'border-white/[0.08] bg-neutral-900 text-white' : 'border-black/[0.06] bg-white text-black'
   const btnC = dark ? 'bg-white text-black hover:bg-neutral-200' : 'bg-black text-white hover:bg-neutral-800'

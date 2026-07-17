@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { doc, setDoc, query, collection, where, getDocs } from 'firebase/firestore'
 import { db } from '../firebase/config'
-import { Check, AlertCircle, BookOpen, Target, Zap } from 'lucide-react'
+import { Check, AlertCircle, BookOpen, Target, Zap, GraduationCap, School } from 'lucide-react'
 
 const classes = ['Class 9', 'Class 10', 'Class 11', 'Class 12']
 const exams = ['CBSE Boards', 'NEET', 'JEE Mains', 'JEE Advanced', 'Just studying']
@@ -13,6 +13,7 @@ export default function Onboarding() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
+  const [selectedRole, setSelectedRole] = useState(null)
   const [username, setUsername] = useState('')
   const [usernameError, setUsernameError] = useState('')
   const [usernameChecking, setUsernameChecking] = useState(false)
@@ -67,6 +68,7 @@ export default function Onboarding() {
         email: user.email,
         photo: user.photoURL,
         username: username.toLowerCase(),
+        role: selectedRole,
         class: selectedClass,
         exam: selectedExam,
         createdAt: new Date().toISOString(),
@@ -132,7 +134,7 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* STEP 2 — USERNAME */}
+          {/* STEP 2 — ROLE */}
           {step === 2 && (
             <motion.div
               key="step2"
@@ -142,7 +144,70 @@ export default function Onboarding() {
               className="bg-white rounded-3xl p-8 shadow-lg border border-blue-100"
             >
               <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-bold mb-4">
-                Step 1 of 3
+                Step 1 of 4
+              </div>
+
+              <h2 className="text-3xl font-black text-black mb-3">I am a...</h2>
+              <p className="text-neutral-600 text-sm mb-8">This decides what your dashboard shows you</p>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setSelectedRole('student')}
+                  className={`py-6 rounded-xl font-bold transition-all border-2 flex flex-col items-center gap-2 ${
+                    selectedRole === 'student'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent'
+                      : 'border-neutral-300 text-neutral-700 hover:border-blue-300'
+                  }`}
+                >
+                  <GraduationCap size={22} />
+                  Student
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setSelectedRole('teacher')}
+                  className={`py-6 rounded-xl font-bold transition-all border-2 flex flex-col items-center gap-2 ${
+                    selectedRole === 'teacher'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent'
+                      : 'border-neutral-300 text-neutral-700 hover:border-blue-300'
+                  }`}
+                >
+                  <School size={22} />
+                  Teacher
+                </motion.button>
+              </div>
+
+              <div className="flex gap-3">
+                <motion.button
+                  onClick={() => setStep(1)}
+                  className="flex-1 border-2 border-neutral-300 text-black py-3 rounded-full font-semibold hover:bg-neutral-50 transition-all"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  onClick={() => setStep(3)}
+                  disabled={!selectedRole}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition-all disabled:opacity-40"
+                >
+                  Continue →
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 3 — USERNAME */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-3xl p-8 shadow-lg border border-blue-100"
+            >
+              <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-bold mb-4">
+                Step 2 of 4
               </div>
 
               <h2 className="text-3xl font-black text-black mb-3">Choose your username</h2>
@@ -190,13 +255,13 @@ export default function Onboarding() {
 
               <div className="flex gap-3">
                 <motion.button
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="flex-1 border-2 border-neutral-300 text-black py-3 rounded-full font-semibold hover:bg-neutral-50 transition-all"
                 >
                   Back
                 </motion.button>
                 <motion.button
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(4)}
                   disabled={usernameAvailable !== true}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition-all disabled:opacity-40"
                 >
@@ -206,17 +271,17 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* STEP 3 — CLASS */}
-          {step === 3 && (
+          {/* STEP 4 — CLASS */}
+          {step === 4 && (
             <motion.div
-              key="step3"
+              key="step4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className="bg-white rounded-3xl p-8 shadow-lg border border-blue-100"
             >
               <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-bold mb-4">
-                Step 2 of 3
+                Step 3 of 4
               </div>
 
               <h2 className="text-3xl font-black text-black mb-2 flex items-center gap-2">
@@ -245,13 +310,13 @@ export default function Onboarding() {
 
               <div className="flex gap-3">
                 <motion.button
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(3)}
                   className="flex-1 border-2 border-neutral-300 text-black py-3 rounded-full font-semibold hover:bg-neutral-50 transition-all"
                 >
                   Back
                 </motion.button>
                 <motion.button
-                  onClick={() => setStep(4)}
+                  onClick={() => setStep(5)}
                   disabled={!selectedClass}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition-all disabled:opacity-40"
                 >
@@ -261,17 +326,17 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          {/* STEP 4 — EXAM */}
-          {step === 4 && (
+          {/* STEP 5 — EXAM */}
+          {step === 5 && (
             <motion.div
-              key="step4"
+              key="step5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className="bg-white rounded-3xl p-8 shadow-lg border border-blue-100"
             >
               <div className="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-bold mb-4">
-                Step 3 of 3
+                Step 4 of 4
               </div>
 
               <h2 className="text-3xl font-black text-black mb-2 flex items-center gap-2">
@@ -298,7 +363,7 @@ export default function Onboarding() {
 
               <div className="flex gap-3">
                 <motion.button
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(4)}
                   className="flex-1 border-2 border-neutral-300 text-black py-3 rounded-full font-semibold hover:bg-neutral-50 transition-all"
                 >
                   Back

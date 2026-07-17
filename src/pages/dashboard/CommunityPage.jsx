@@ -16,7 +16,6 @@ import {
 } from 'firebase/firestore'
 import {
   MessageSquareText,
-  UserPlus,
   Check,
   Send,
   Users,
@@ -26,6 +25,7 @@ import {
   MessageCircle,
   Heart,
   Share2,
+  UserPlus,
 } from 'lucide-react'
 import { db } from '../../firebase/config'
 import { useDashboard } from '../../context/DashboardContext'
@@ -190,7 +190,7 @@ export default function CommunityPage() {
                 {[
                   { id: 'feed', label: 'Feed', icon: MessageSquareText },
                   { id: 'people', label: 'People', icon: Users },
-                  { id: 'profile', label: 'Profile', icon: UserPlus },
+                  { id: 'profile', label: 'Profile', icon: Edit },
                 ].map(({ id, label, icon: Icon }) => (
                   <motion.button
                     key={id}
@@ -440,7 +440,6 @@ export default function CommunityPage() {
                     className="w-24 h-24 rounded-full mx-auto mb-4 ring-4 border-4"
                     style={{
                       borderColor: dark ? 'rgb(20, 20, 20)' : 'white',
-                      ringColor: 'rgb(59, 130, 246)',
                     }}
                   />
 
@@ -464,14 +463,14 @@ export default function CommunityPage() {
                           <button
                             onClick={() => setEditingBio(false)}
                             className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                              dark ? 'bg-neutral-800 text-white' : 'bg-neutral-200 text-black'
+                              dark ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'bg-neutral-200 text-black hover:bg-neutral-300'
                             }`}
                           >
                             Cancel
                           </button>
                           <button
                             onClick={updateBio}
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-semibold"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-semibold hover:shadow-lg transition-all"
                           >
                             Save
                           </button>

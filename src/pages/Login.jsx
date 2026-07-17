@@ -32,7 +32,7 @@ export default function Login() {
         transition={{ duration: 0.6 }}
         className="bg-white border border-black/8 rounded-3xl p-10 w-full max-w-md text-center shadow-sm"
       >
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-neutral-400 mb-6">Formula X</p>
+        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-neutral-400 mb-6">Formula Labs</p>
         <h1 className="text-3xl font-black tracking-tighter text-black mb-2">Welcome back.</h1>
         <p className="text-neutral-500 text-sm mb-10">Sign in to access your formula sheets.</p>
 

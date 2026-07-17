@@ -19,7 +19,7 @@ const syllabus = {
 }
 
 export default function Admin() {
-  const { user, logout } = useAuth()
+  const { user, logout, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('users')
   const [users, setUsers] = useState([])
@@ -38,9 +38,10 @@ export default function Admin() {
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
   useEffect(() => {
+    if (authLoading) return
     if (user?.email !== ADMIN_EMAIL) { navigate('/dashboard'); return }
     fetchData()
-  }, [user])
+  }, [user, authLoading])
 
   const fetchData = async () => {
     setLoading(true)
@@ -97,6 +98,7 @@ export default function Admin() {
     setReports(prev => prev.filter(r => r.id !== id))
   }
 
+  if (authLoading) return null
   if (user?.email !== ADMIN_EMAIL) return null
 
   const currentSubjects = Object.keys(syllabus[selClass] || {})
@@ -114,7 +116,7 @@ export default function Admin() {
 
       {/* HEADER */}
       <div className="border-b border-black/6 bg-white px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-        <span className="font-black text-black tracking-tight">Formula X — Admin</span>
+        <span className="font-black text-black tracking-tight">Formula Labs — Admin</span>
         <div className="flex items-center gap-5 flex-wrap">
           {tabs.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}

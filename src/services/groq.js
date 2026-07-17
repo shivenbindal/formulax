@@ -27,10 +27,10 @@ For each formula:
 - formula: Equation with ALL variables defined (e.g. "F = kq₁q₂/r² | F=force(N), k=9×10⁹ Nm²/C², q=charge(C), r=distance(m)")
 - why: Specific reason this formula applies to THIS question (reference the question's values/scenario)
 
-hint: Step-by-step approach without solving (e.g. "1. Identify the charges and distance. 2. Apply Coulomb's law. 3. Check units.")
+approach: An array of 3-6 short, concrete, imperative steps for HOW to solve this — not an explanation paragraph. Each step is one clear action, under 15 words, referencing this specific question's values where useful. Never compute or reveal the final numerical answer. Example array: ["Identify the two charges and the distance between them from the question", "Note that this is a straight application of Coulomb's Law", "Substitute the given charge and distance values into the formula", "Keep units consistent — convert distance to metres before substituting"]
 
 Return ONLY valid JSON, no markdown, no extra text:
-{"formulas":[{"name":"...","formula":"...","why":"..."}],"hint":"..."}`
+{"formulas":[{"name":"...","formula":"...","why":"..."}],"approach":["...","...","..."]}`
     },
     {
       role: 'user',

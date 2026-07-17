@@ -70,6 +70,65 @@ Return ONLY valid JSON, no markdown, no extra text:
     } catch (err) {
       if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
       throw err
+
+      export async function parseTestQuestions(rawText, imageBase64 = null) {
+  const messages = [
+    {
+      role: 'system',
+      content: `You are an assistant that extracts multiple-choice test questions from teacher-provided content (pasted text, or a photo of a question paper) for Indian CBSE/NEET/JEE students.
+
+Extract every question you can find. For each question:
+- text: the exact question text, cleaned up
+- options: an array of exactly 4 answer options. If the source has fewer or more, adjust to exactly 4 while keeping the correct one intact.
+- correct: the index (0-3) of the correct option. If an answer key is present in the source, use it. If not, use your own subject knowledge to determine the most likely correct answer — never leave this blank or guess randomly.
+
+Also suggest a short "title" for the test based on the content (e.g. "Class 12 Electrochemistry MCQs").
+
+Return ONLY valid JSON, no markdown, no extra text:
+{"title":"...","questions":[{"text":"...","options":["...","...","...","..."],"correct":0}]}`
+    },
+    {
+      role: 'user',
+      content: imageBase64
+        ? [
+            { type: 'text', text: rawText || 'Extract all MCQ test questions from this image.' },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+          ]
+        : rawText
+    }
+  ]
+
+  const tryWithKey = async (key) => {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: imageBase64 ? 'meta-llama/llama-4-scout-17b-16e-instruct' : 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: 4000,
+        temperature: 0.2
+      })
+    })
+    if (res.status === 429) throw new Error('RATE_LIMIT')
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err?.error?.message || 'Groq API error')
+    }
+    const data = await res.json()
+    const text = data.choices[0].message.content
+    return JSON.parse(text.replace(/```json|```/g, '').trim())
+  }
+
+  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+    try {
+      return await tryWithKey(getKey())
+    } catch (err) {
+      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
+      throw err
+    }
+  }
+  throw new Error('All API keys rate limited. Try again in a moment.')
+}
     }
   }
   throw new Error('All API keys rate limited. Try again in a moment.')

@@ -20,6 +20,7 @@ export function DashboardProvider({ children }) {
   const [classPanelOpen, setClassPanelOpen] = useState(false)
   const [classLoaded, setClassLoaded] = useState(false)
   const [dark, setDark] = useState(false)
+  const [role, setRole] = useState('student')
   const [streak, setStreak] = useState(0)
   const [classChangeVersion, setClassChangeVersion] = useState(0)
 
@@ -50,7 +51,7 @@ export function DashboardProvider({ children }) {
           setSelectedSubject(Object.keys(syllabus[data.class])[0])
         }
         if (typeof data.darkMode === 'boolean') setDark(data.darkMode)
-
+        setRole(data.role === 'teacher' ? 'teacher' : 'student')
         const today = new Date().toISOString().split('T')[0]
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
         let newStreak = data.streak || 0
@@ -115,7 +116,7 @@ export function DashboardProvider({ children }) {
     user, handleLogout,
     selectedClass, setSelectedClass, selectedSubject, setSelectedSubject,
     sidebarOpen, setSidebarOpen, classPanelOpen, setClassPanelOpen,
-    classLoaded, dark, toggleDark, streak, handleClassChange, classChangeVersion,
+    classLoaded, dark, toggleDark, streak, handleClassChange, classChangeVersion, role,
     bg, surface, border, border2, text, navActive, navInactive,
   }
 

@@ -10,7 +10,7 @@ import { useDashboard } from '../context/DashboardContext'
 import { syllabus } from '../data/syllabus'
 import ComingSoon from './ComingSoon'
 
-const TABS = [
+const ALL_TABS = [
   { path: 'explorer', label: 'Explorer', Icon: LayoutGrid, color: 'from-blue-500 to-cyan-500' },
   { path: 'approach', label: 'Approach', Icon: Compass, color: 'from-purple-500 to-pink-500' },
   { path: 'saved', label: 'My Sheets', Icon: Heart, color: 'from-red-500 to-orange-500' },
@@ -51,8 +51,10 @@ export default function DashboardLayout() {
     bg,
     surface,
     text,
+    role,
   } = useDashboard()
 
+  const TABS = ALL_TABS.filter((t) => t.path !== 'teacher' || role === 'teacher')
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)

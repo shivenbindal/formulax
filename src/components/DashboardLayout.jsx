@@ -1,26 +1,33 @@
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Search, LayoutGrid, Heart, Clock, Sun, Moon, GraduationCap,
+  Compass, LayoutGrid, Heart, Clock, Sun, Moon, GraduationCap,
   ChevronLeft, ChevronRight, X, Flame, Menu, Lock, School, ClipboardList, Bot,
+  Search, Bell, MessageCircle, PlusCircle, Users,
 } from 'lucide-react'
 import { useDashboard } from '../context/DashboardContext'
 import { syllabus } from '../data/syllabus'
 import ComingSoon from './ComingSoon'
 
 const TABS = [
-  { path: 'formula-finder', label: 'Formula Finder', Icon: Search },
   { path: 'explorer', label: 'Explorer', Icon: LayoutGrid },
+  { path: 'approach', label: 'Approach', Icon: Compass },
   { path: 'saved', label: 'My Sheets', Icon: Heart },
+  { path: 'community', label: 'Community', Icon: Users },
+  { path: 'teacher', label: 'Teacher', Icon: School },
   { path: 'history', label: 'History', Icon: Clock },
 ]
 
 const LOCKED_TABS = [
-  { label: 'Teacher Portal', Icon: School },
   { label: 'Quizzes', Icon: ClipboardList },
   { label: 'AI Tutor', Icon: Bot },
 ]
+
+const TITLE_MAP = {
+  explorer: 'Explorer', approach: 'Approach', saved: 'My Sheets',
+  community: 'Community', teacher: 'Teacher', history: 'History', search: 'Search',
+}
 
 export default function DashboardLayout() {
   const {
@@ -29,8 +36,12 @@ export default function DashboardLayout() {
     streak, handleClassChange, bg, surface, text,
   } = useDashboard()
 
+  const navigate = useNavigate()
+  const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [comingSoon, setComingSoon] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [bellOpen, setBellOpen] = useState(false)
 
   if (!classLoaded) return (
     <div className={`min-h-screen flex items-center justify-center ${bg}`}>
@@ -40,6 +51,15 @@ export default function DashboardLayout() {
 
   const activeRow = dark ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-black shadow-sm'
   const inactiveRow = dark ? 'text-neutral-400 hover:bg-white/5' : 'text-neutral-500 hover:bg-black/[0.03]'
+  const currentSegment = location.pathname.split('/')[2] || 'explorer'
+  const pageTitle = TITLE_MAP[currentSegment] || 'Dashboard'
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    if (!searchTerm.trim()) return
+    navigate(`/dashboard/search?q=${encodeURIComponent(searchTerm.trim())}`)
+    setMobileOpen(false)
+  }
 
   const SidebarContent = ({ collapsed, onNavigate }) => (
     <>
@@ -111,14 +131,13 @@ export default function DashboardLayout() {
     <div className={`min-h-screen flex font-[-apple-system,BlinkMacSystemFont,'SF_Pro_Display','Segoe_UI',Roboto,sans-serif] ${bg}`}>
 
       {/* DESKTOP SIDEBAR */}
-      <aside className={`hidden md:flex ${sidebarOpen ? 'w-64' : 'w-[72px]'} transition-all duration-300 ${surface} flex-col h-screen sticky top-0 border-r border-black/[0.04]`}>
+      <aside className={`hidden md:flex ${sidebarOpen ? 'w-64' : 'w-[72px]'} transition-all duration-300 ${surface} flex-col h-screen sticky top-0 border-r border-black/[0.04] relative`}>
         <SidebarContent collapsed={!sidebarOpen} />
         <button onClick={() => setSidebarOpen(!sidebarOpen)}
           className="absolute -right-3 top-8 w-6 h-6 rounded-full bg-white shadow-md border border-black/5 flex items-center justify-center text-neutral-400 hover:text-black transition-colors">
           {sidebarOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
         </button>
 
-        {/* FLOATING DARK MODE TOGGLE */}
         <div className="absolute bottom-24 -right-3 flex flex-col rounded-full shadow-md border border-black/5 overflow-hidden bg-white">
           <button onClick={toggleDark} className={`w-6 h-6 flex items-center justify-center ${!dark ? 'bg-black text-white' : 'text-neutral-400'}`}>
             <Sun size={11} strokeWidth={2} />
@@ -138,12 +157,8 @@ export default function DashboardLayout() {
             <motion.div
               initial={{ x: -288 }} animate={{ x: 0 }} exit={{ x: -288 }}
               transition={{ type: 'tween', duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-              drag="x"
-              dragConstraints={{ left: -288, right: 0 }}
-              dragElastic={0.05}
-              onDragEnd={(e, info) => {
-                if (info.offset.x < -80 || info.velocity.x < -400) setMobileOpen(false)
-              }}
+              drag="x" dragConstraints={{ left: -288, right: 0 }} dragElastic={0.05}
+              onDragEnd={(e, info) => { if (info.offset.x < -80 || info.velocity.x < -400) setMobileOpen(false) }}
               className={`fixed top-0 left-0 h-screen w-72 z-50 flex flex-col ${surface} shadow-2xl md:hidden`}>
               <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} />
             </motion.div>
@@ -153,31 +168,71 @@ export default function DashboardLayout() {
 
       {/* MAIN */}
       <main className="flex-1 overflow-auto">
-        <div className={`h-16 px-5 md:px-8 flex items-center justify-between border-b border-black/[0.04] ${surface} sticky top-0 z-10`}>
-          <div className="flex items-center gap-3">
+        <div className={`h-16 px-5 md:px-8 flex items-center justify-between gap-3 border-b border-black/[0.04] ${surface} sticky top-0 z-10`}>
+          <div className="flex items-center gap-3 shrink-0">
             <button onClick={() => setMobileOpen(true)} className="md:hidden text-neutral-500">
               <Menu size={20} strokeWidth={2} />
             </button>
-            <div>
-              <p className="text-[11px] text-neutral-400 leading-none mb-0.5">Good morning</p>
-              <h1 className={`text-[14px] font-semibold tracking-[-0.2px] leading-none ${text}`}>{user?.displayName?.split(' ')[0]}</h1>
-            </div>
+            <h1 className={`hidden sm:block text-[17px] font-semibold tracking-[-0.3px] ${text}`}>{pageTitle}</h1>
           </div>
-          <div className="flex items-center gap-3">
+
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${dark ? 'bg-white/5' : 'bg-black/[0.03]'}`}>
+              <Search size={14} strokeWidth={2} className="text-neutral-400 shrink-0" />
+              <input
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search chapters, doubts, people..."
+                className={`bg-transparent border-0 outline-none text-[13px] w-full placeholder-neutral-400 ${text}`}
+              />
+            </div>
+          </form>
+
+          <div className="flex items-center gap-2 shrink-0">
             {streak > 0 && (
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium ${dark ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600'}`}>
+              <div className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium ${dark ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600'}`}>
                 <Flame size={12} strokeWidth={2.5} />
-                <span className="hidden sm:inline">{streak} day{streak > 1 ? 's' : ''}</span>
+                <span>{streak} day{streak > 1 ? 's' : ''}</span>
               </div>
             )}
-            <span className="hidden sm:inline text-[12px] text-neutral-400">{selectedClass}</span>
+
+            <button onClick={() => navigate('/dashboard/community?compose=true')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${dark ? 'bg-white text-black hover:bg-neutral-200' : 'bg-black text-white hover:bg-neutral-800'}`}>
+              <PlusCircle size={14} strokeWidth={2} />
+              <span className="hidden sm:inline">Ask</span>
+            </button>
+
+            <div className="relative">
+              <button onClick={() => setBellOpen(!bellOpen)}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${dark ? 'text-neutral-400 hover:bg-white/5' : 'text-neutral-500 hover:bg-black/[0.03]'}`}>
+                <Bell size={16} strokeWidth={2} />
+              </button>
+              <AnimatePresence>
+                {bellOpen && (
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                    className={`absolute right-0 mt-2 w-64 rounded-2xl shadow-xl border p-4 z-20 ${dark ? 'bg-neutral-900 border-white/[0.06]' : 'bg-white border-black/[0.04]'}`}>
+                    <p className={`text-[12px] font-medium mb-1 ${text}`}>Notifications</p>
+                    <p className="text-[11px] text-neutral-400">Nothing new yet — replies and follows will show up here.</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <button onClick={() => navigate('/dashboard/community?tab=chat')}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${dark ? 'text-neutral-400 hover:bg-white/5' : 'text-neutral-500 hover:bg-black/[0.03]'}`}>
+              <MessageCircle size={16} strokeWidth={2} />
+            </button>
+
+            <button onClick={() => navigate('/dashboard/community?tab=profile')} className="shrink-0">
+              <img src={user?.photoURL} className="w-8 h-8 rounded-full" />
+            </button>
           </div>
         </div>
 
         <Outlet />
       </main>
 
-      {/* CLASS PANEL (shared) */}
+      {/* CLASS PANEL */}
       <AnimatePresence>
         {classPanelOpen && (
           <>

@@ -26,7 +26,6 @@ For each formula:
 - name: Full specific name (e.g. "Coulomb's Law", not just "force formula")
 - formula: Equation with ALL variables defined (e.g. "F = kq₁q₂/r² | F=force(N), k=9×10⁹ Nm²/C², q=charge(C), r=distance(m)")
 - why: Specific reason this formula applies to THIS question (reference the question's values/scenario)
-
 approach: An array of 3-6 short, concrete, imperative steps for HOW to solve this — not an explanation paragraph. Each step is one clear action, under 15 words, referencing this specific question's values where useful. Never compute or reveal the final numerical answer. Example array: ["Identify the two charges and the distance between them from the question", "Note that this is a straight application of Coulomb's Law", "Substitute the given charge and distance values into the formula", "Keep units consistent — convert distance to metres before substituting"]
 
 Return ONLY valid JSON, no markdown, no extra text:
@@ -51,14 +50,17 @@ Return ONLY valid JSON, no markdown, no extra text:
         model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
         messages,
         max_tokens: 1200,
-        temperature: 0.2
+        temperature: 0.2,
+        reasoning_format: 'hidden'
       })
     })
+
     if (res.status === 429) throw new Error('RATE_LIMIT')
     if (!res.ok) {
       const err = await res.json()
       throw new Error(err?.error?.message || 'Groq API error')
     }
+
     const data = await res.json()
     const text = data.choices[0].message.content
     return JSON.parse(text.replace(/```json|```/g, '').trim())
@@ -72,6 +74,7 @@ Return ONLY valid JSON, no markdown, no extra text:
       throw err
     }
   }
+
   throw new Error('All API keys rate limited. Try again in a moment.')
 }
 
@@ -110,14 +113,17 @@ Return ONLY valid JSON, no markdown, no extra text:
         model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
         messages,
         max_tokens: 7000,
-        temperature: 0.2
+        temperature: 0.2,
+        reasoning_format: 'hidden'
       })
     })
+
     if (res.status === 429) throw new Error('RATE_LIMIT')
     if (!res.ok) {
       const err = await res.json()
       throw new Error(err?.error?.message || 'Groq API error')
     }
+
     const data = await res.json()
     const text = data.choices[0].message.content
     return JSON.parse(text.replace(/```json|```/g, '').trim())
@@ -131,5 +137,6 @@ Return ONLY valid JSON, no markdown, no extra text:
       throw err
     }
   }
+
   throw new Error('All API keys rate limited. Try again in a moment.')
 }

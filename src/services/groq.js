@@ -48,7 +48,7 @@ Return ONLY valid JSON, no markdown, no extra text:
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
       body: JSON.stringify({
-        model: imageBase64 ? 'meta-llama/llama-4-scout-17b-16e-instruct' : 'llama-3.3-70b-versatile',
+        model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
         messages,
         max_tokens: 1200,
         temperature: 0.2
@@ -107,9 +107,9 @@ Return ONLY valid JSON, no markdown, no extra text:
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
       body: JSON.stringify({
-        model: imageBase64 ? 'meta-llama/llama-4-scout-17b-16e-instruct' : 'llama-3.3-70b-versatile',
+        model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
         messages,
-        max_tokens: 4000,
+        max_tokens: 7000,
         temperature: 0.2
       })
     })

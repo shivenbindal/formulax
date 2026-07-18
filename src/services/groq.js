@@ -49,9 +49,10 @@ Return ONLY valid JSON, no markdown, no extra text:
       body: JSON.stringify({
         model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
         messages,
-        max_tokens: 1200,
+        max_tokens: 2000,
         temperature: 0.2,
-        reasoning_format: 'hidden'
+        reasoning_format: 'hidden',
+        reasoning_effort: 'none'
       })
     })
 
@@ -63,6 +64,7 @@ Return ONLY valid JSON, no markdown, no extra text:
 
     const data = await res.json()
     const text = data.choices[0].message.content
+    if (!text || !text.trim()) throw new Error('Empty response from model')
     return JSON.parse(text.replace(/```json|```/g, '').trim())
   }
 
@@ -114,7 +116,8 @@ Return ONLY valid JSON, no markdown, no extra text:
         messages,
         max_tokens: 7000,
         temperature: 0.2,
-        reasoning_format: 'hidden'
+        reasoning_format: 'hidden',
+        reasoning_effort: 'none'
       })
     })
 
@@ -126,6 +129,7 @@ Return ONLY valid JSON, no markdown, no extra text:
 
     const data = await res.json()
     const text = data.choices[0].message.content
+    if (!text || !text.trim()) throw new Error('Empty response from model')
     return JSON.parse(text.replace(/```json|```/g, '').trim())
   }
 

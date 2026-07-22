@@ -43,17 +43,24 @@ Return ONLY valid JSON, no markdown, no extra text:
   ]
 
   const tryWithKey = async (key) => {
+    const body = {
+      model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
+      messages,
+      max_tokens: 2000,
+      temperature: 0.2
+    }
+
+    // reasoning_format/reasoning_effort are only supported on the vision model (qwen).
+    // Sending them to llama-3.3-70b-versatile throws "reasoning_effort is not supported with this model".
+    if (imageBase64) {
+      body.reasoning_format = 'hidden'
+      body.reasoning_effort = 'none'
+    }
+
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify({
-        model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
-        messages,
-        max_tokens: 2000,
-        temperature: 0.2,
-        reasoning_format: 'hidden',
-        reasoning_effort: 'none'
-      })
+      body: JSON.stringify(body)
     })
 
     if (res.status === 429) throw new Error('RATE_LIMIT')
@@ -108,17 +115,24 @@ Return ONLY valid JSON, no markdown, no extra text:
   ]
 
   const tryWithKey = async (key) => {
+    const body = {
+      model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
+      messages,
+      max_tokens: 7000,
+      temperature: 0.2
+    }
+
+    // reasoning_format/reasoning_effort are only supported on the vision model (qwen).
+    // Sending them to llama-3.3-70b-versatile throws "reasoning_effort is not supported with this model".
+    if (imageBase64) {
+      body.reasoning_format = 'hidden'
+      body.reasoning_effort = 'none'
+    }
+
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify({
-        model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
-        messages,
-        max_tokens: 7000,
-        temperature: 0.2,
-        reasoning_format: 'hidden',
-        reasoning_effort: 'none'
-      })
+      body: JSON.stringify(body)
     })
 
     if (res.status === 429) throw new Error('RATE_LIMIT')

@@ -87,52 +87,41 @@ Return ONLY valid JSON, no markdown, no extra text:
   throw new Error('All API keys rate limited. Try again in a moment.')
 }
 
-export async function parseTestQuestions(rawText, imageBase64 = null) {
+export async function generateQuizQuestions({ classLevel, subject, topic, difficulty, count = 5 }) {
   const messages = [
     {
       role: 'system',
-      content: `You are an assistant that extracts multiple-choice test questions from teacher-provided content (pasted text, or a photo of a question paper) for Indian CBSE/NEET/JEE students.
+      content: `You are a CBSE ${classLevel} ${subject} MCQ generator for Indian students preparing for board exams, NEET, and JEE.
 
-Extract every question you can find. For each question:
-- text: the exact question text, cleaned up
-- options: an array of exactly 4 answer options. If the source has fewer or more, adjust to exactly 4 while keeping the correct one intact.
-- correct: the index (0-3) of the correct option. If an answer key is present in the source, use it. If not, use your own subject knowledge to determine the most likely correct answer — never leave this blank or guess randomly.
+Generate exactly ${count} multiple-choice questions on the topic "${topic}" at ${difficulty} difficulty.
 
-Also suggest a short "title" for the test based on the content (e.g. "Class 12 Electrochemistry MCQs").
+Rules:
+- Strictly ${classLevel} NCERT/CBSE syllabus-aligned
+- Each question has exactly 4 options, only one correct
+- Include a short explanation (1-3 sentences) for why the correct answer is right
+- "easy" = direct recall/definition, "medium" = single-step application/calculation, "hard" = multi-step or conceptual application
+- Vary question structure — don't repeat the same phrasing pattern across questions
+- Never leave the correct index ambiguous or guess randomly
 
 Return ONLY valid JSON, no markdown, no extra text:
-{"title":"...","questions":[{"text":"...","options":["...","...","...","..."],"correct":0}]}`
+{"questions":[{"text":"...","options":["...","...","...","..."],"correct":0,"explanation":"..."}]}`
     },
     {
       role: 'user',
-      content: imageBase64
-        ? [
-            { type: 'text', text: rawText || 'Extract all MCQ test questions from this image.' },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-          ]
-        : rawText
+      content: `Generate ${count} ${difficulty} MCQs on ${topic}.`
     }
   ]
 
   const tryWithKey = async (key) => {
-    const body = {
-      model: imageBase64 ? 'qwen/qwen3.6-27b' : 'llama-3.3-70b-versatile',
-      messages,
-      max_tokens: 7000,
-      temperature: 0.2
-    }
-
-    // reasoning_format/reasoning_effort are only supported on the vision model (qwen).
-    // Sending them to llama-3.3-70b-versatile throws "reasoning_effort is not supported with this model".
-    if (imageBase64) {
-      body.reasoning_format = 'hidden'
-      body.reasoning_effort = 'none'
-    }
-
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: 3000,
+        temperature: 0.7
+      })
     })
 
     if (res.status === 429) throw new Error('RATE_LIMIT')
@@ -147,14 +136,4 @@ Return ONLY valid JSON, no markdown, no extra text:
     return JSON.parse(text.replace(/```json|```/g, '').trim())
   }
 
-  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
-    try {
-      return await tryWithKey(getKey())
-    } catch (err) {
-      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
-      throw err
-    }
-  }
-
-  throw new Error('All API keys rate limited. Try again in a moment.')
-}
+  for (let attempt = 0; attempt <

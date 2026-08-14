@@ -50,8 +50,6 @@ Return ONLY valid JSON, no markdown, no extra text:
       temperature: 0.2
     }
 
-    // reasoning_format/reasoning_effort are only supported on the vision model (qwen).
-    // Sending them to llama-3.3-70b-versatile throws "reasoning_effort is not supported with this model".
     if (imageBase64) {
       body.reasoning_format = 'hidden'
       body.reasoning_effort = 'none'
@@ -136,4 +134,67 @@ Return ONLY valid JSON, no markdown, no extra text:
     return JSON.parse(text.replace(/```json|```/g, '').trim())
   }
 
-  for (let attempt = 0; attempt <
+  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+    try {
+      return await tryWithKey(getKey())
+    } catch (err) {
+      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
+      throw err
+    }
+  }
+
+  throw new Error('All API keys rate limited. Try again in a moment.')
+}
+
+export async function parseTestQuestions(input) {
+  const messages = [
+    {
+      role: 'system',
+      content: `You are a test question parser for Indian CBSE students (Class 9-12, NEET, JEE).
+
+Parse the provided text or image containing test questions and extract them as structured data.
+
+Return ONLY valid JSON, no markdown, no extra text:
+{"questions":[{"text":"...","options":["...","...","...","..."],"correct":0}]}`
+    },
+    {
+      role: 'user',
+      content: input
+    }
+  ]
+
+  const tryWithKey = async (key) => {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: 3000,
+        temperature: 0.5
+      })
+    })
+
+    if (res.status === 429) throw new Error('RATE_LIMIT')
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err?.error?.message || 'Groq API error')
+    }
+
+    const data = await res.json()
+    const text = data.choices[0].message.content
+    if (!text || !text.trim()) throw new Error('Empty response from model')
+    return JSON.parse(text.replace(/```json|```/g, '').trim())
+  }
+
+  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+    try {
+      return await tryWithKey(getKey())
+    } catch (err) {
+      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
+      throw err
+    }
+  }
+
+  throw new Error('All API keys rate limited. Try again in a moment.')
+}

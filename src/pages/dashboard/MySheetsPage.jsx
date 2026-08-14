@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Plus, Flame, Settings2, Bell, BookOpen, Zap } from 'lucide-react'
-import { db } from '../firebase/config'
+import { db } from '../../firebase/config'
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const SUBJECT_COLORS = {

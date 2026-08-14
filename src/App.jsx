@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthContext'
 import { DashboardProvider } from './context/DashboardContext'
 import DashboardLayout from './components/DashboardLayout'
 import { useAuth } from './context/AuthContext'
-
 // Import pages
 import Login from './pages/Login'
 import Landing from './pages/Landing'
@@ -11,8 +10,6 @@ import Onboarding from './pages/Onboarding'
 import Pricing from './pages/Pricing'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
-import Admin from './pages/Admin'
-
 // Import dashboard pages
 import FormulaFinderPage from './pages/dashboard/FormulaFinderPage'
 import ExplorerPage from './pages/dashboard/ExplorerPage'
@@ -22,11 +19,11 @@ import SearchPage from './pages/dashboard/SearchPage'
 import CommunityPage from './pages/dashboard/CommunityPage'
 import TeacherPage from './pages/dashboard/TeacherPage'
 import TakeTestPage from './pages/dashboard/TakeTestPage'
+import AdminPage from './pages/dashboard/AdminPage'
 
 function ProtectedDashboard() {
   const { user } = useAuth()
   if (!user) return <Navigate to="/" replace />
-
   return (
     <DashboardProvider>
       <Routes>
@@ -38,6 +35,7 @@ function ProtectedDashboard() {
           <Route path="search" element={<SearchPage />} />
           <Route path="community" element={<CommunityPage />} />
           <Route path="teacher" element={<TeacherPage />} />
+          <Route path="admin" element={<AdminPage />} />
           <Route path="test/:classroomId/:testId" element={<TakeTestPage />} />
           <Route index element={<Navigate to="explorer" replace />} />
         </Route>
@@ -58,12 +56,10 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/dashboard/*" element={<ProtectedDashboard />} />
-          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
   )
 }
-
 export default App

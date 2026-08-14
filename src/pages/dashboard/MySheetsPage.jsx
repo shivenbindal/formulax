@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DashboardContext } from '../../context/DashboardContext'
-import { useContext } from 'react'
+import { useDashboard } from '../../context/DashboardContext'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -20,7 +19,7 @@ const SUBJECT_COLORS = {
 
 export default function MySheetsPage() {
   const navigate = useNavigate()
-  const { user, darkMode, classLevel, subject, streak } = useContext(DashboardContext)
+  const { user, dark: darkMode, selectedClass: classLevel, selectedSubject: subject, streak } = useDashboard()  
   const [sheets, setSheets] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterSubject, setFilterSubject] = useState(subject || 'All')

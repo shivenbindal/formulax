@@ -4,12 +4,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   Compass, LayoutGrid, Heart, Clock, Sun, Moon, GraduationCap,
   ChevronLeft, ChevronRight, X, Flame, Menu, Lock, School, ClipboardList, Bot,
-  Search, Bell, MessageCircle, PlusCircle, Users, Sparkles, Settings, LogOut,
+  Search, Bell, MessageCircle, PlusCircle, Users, Sparkles, Settings, LogOut, Shield,
 } from 'lucide-react'
 import { useDashboard } from '../context/DashboardContext'
 import { syllabus } from '../data/syllabus'
 import ComingSoon from './ComingSoon'
 
+const ADMIN_EMAIL = 'shivenbindal@gmail.com'
 const ALL_TABS = [
   { path: 'explorer', label: 'Explorer', Icon: LayoutGrid, color: 'from-blue-500 to-cyan-500' },
   { path: 'approach', label: 'Approach', Icon: Compass, color: 'from-purple-500 to-pink-500' },
@@ -17,6 +18,7 @@ const ALL_TABS = [
   { path: 'community', label: 'Community', Icon: Users, color: 'from-green-500 to-emerald-500' },
   { path: 'teacher', label: 'Teacher', Icon: School, color: 'from-indigo-500 to-blue-500' },
   { path: 'history', label: 'History', Icon: Clock, color: 'from-amber-500 to-orange-500' },
+  { path: 'admin', label: 'Admin', Icon: Shield, color: 'from-neutral-700 to-neutral-900' },
 ]
 
 const LOCKED_TABS = [
@@ -32,6 +34,7 @@ const TITLE_MAP = {
   teacher: 'Teacher',
   history: 'History',
   search: 'Search',
+  admin: 'Admin',
 }
 
 export default function DashboardLayout() {
@@ -54,7 +57,10 @@ export default function DashboardLayout() {
     role,
   } = useDashboard()
 
-  const TABS = ALL_TABS.filter((t) => t.path !== 'teacher' || role === 'teacher')
+  const TABS = ALL_TABS.filter((t) =>
+    (t.path !== 'teacher' || role === 'teacher') &&
+    (t.path !== 'admin' || user?.email === ADMIN_EMAIL)
+  )
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)

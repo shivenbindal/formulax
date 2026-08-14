@@ -1,6 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 @import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  
+  --color-bg-canvas: #FAFAF8;
+  --color-text-primary: #0A0A0A;
+  --color-accent-lime: #D4FF00;
+  
+  /* Subject colors for bento redesign */
+  --color-physics: #3B82F6;
+  --color-chemistry: #FB7185;
+  --color-math: #A78BFA;
+  --color-biology: #10B981;
+}
 
 body {
   font-family: 'Inter', sans-serif;

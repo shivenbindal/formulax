@@ -44,7 +44,7 @@ Return ONLY valid JSON, no markdown, no extra text:
 
   const tryWithKey = async (key) => {
     const body = {
-      model: imageBase64 ? 'qwen/qwen3.6-27b' : 'gpt-4-turbo',
+      model: 'qwen/qwen3.6-27b',
       messages,
       max_tokens: 2000,
       temperature: 0.2
@@ -115,7 +115,7 @@ Return ONLY valid JSON, no markdown, no extra text:
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
       body: JSON.stringify({
-        model: 'gpt-4-turbo',
+        model: 'qwen/qwen3.6-27b',
         messages,
         max_tokens: 3000,
         temperature: 0.7
@@ -168,7 +168,7 @@ Return ONLY valid JSON, no markdown, no extra text:
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
       body: JSON.stringify({
-        model: 'gpt-4-turbo',
+        model: 'qwen/qwen3.6-27b',
         messages,
         max_tokens: 3000,
         temperature: 0.5

@@ -7,6 +7,8 @@ const GROQ_KEYS = [
   import.meta.env.VITE_GROQ_KEY_6,
 ].filter(Boolean)
 
+const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY
+
 let keyIndex = 0
 function getKey() {
   const key = GROQ_KEYS[keyIndex % GROQ_KEYS.length]
@@ -110,40 +112,42 @@ Return ONLY valid JSON, no markdown, no extra text:
     }
   ]
 
-  const tryWithKey = async (key) => {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify({
-        model: 'allam-2-7b',
-        messages,
-        max_tokens: 3000,
-        temperature: 0.7
-      })
+  if (!SARVAM_API_KEY) {
+    throw new Error('Sarvam API key not configured. Set VITE_SARVAM_API_KEY.')
+  }
+
+  const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-subscription-key': SARVAM_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'sarvam-105b',
+      messages,
+      max_tokens: 3000,
+      temperature: 0.7
     })
+  })
 
-    if (res.status === 429) throw new Error('RATE_LIMIT')
-    if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err?.error?.message || 'Groq API error')
-    }
-
-    const data = await res.json()
-    const text = data.choices[0].message.content
-    if (!text || !text.trim()) throw new Error('Empty response from model')
-    return JSON.parse(text.replace(/```json|```/g, '').trim())
+  if (res.status === 429) {
+    throw new Error('Sarvam API rate limited. Try again in a moment.')
   }
-
-  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+  if (!res.ok) {
+    let errMsg = 'Sarvam API error'
     try {
-      return await tryWithKey(getKey())
-    } catch (err) {
-      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
-      throw err
+      const err = await res.json()
+      errMsg = err?.error?.message || err?.message || errMsg
+    } catch {
+      // response wasn't JSON, keep default message
     }
+    throw new Error(errMsg)
   }
 
-  throw new Error('All API keys rate limited. Try again in a moment.')
+  const data = await res.json()
+  const text = data.choices[0].message.content
+  if (!text || !text.trim()) throw new Error('Empty response from model')
+  return JSON.parse(text.replace(/```json|```/g, '').trim())
 }
 
 export async function parseTestQuestions(input) {

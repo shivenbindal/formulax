@@ -1,22 +1,45 @@
-const GROQ_KEYS = [
-  import.meta.env.VITE_GROQ_API_KEY,
-  import.meta.env.VITE_GROQ_KEY_2,
-  import.meta.env.VITE_GROQ_KEY_3,
-  import.meta.env.VITE_GROQ_KEY_4,
-  import.meta.env.VITE_GROQ_KEY_5,
-  import.meta.env.VITE_GROQ_KEY_6,
-].filter(Boolean)
-
 const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY
 
-let keyIndex = 0
-function getKey() {
-  const key = GROQ_KEYS[keyIndex % GROQ_KEYS.length]
-  keyIndex = (keyIndex + 1) % GROQ_KEYS.length
-  return key
+async function callSarvam(messages, { maxTokens = 2000, temperature = 0.2 } = {}) {
+  if (!SARVAM_API_KEY) {
+    throw new Error('Sarvam API key not configured. Set VITE_SARVAM_API_KEY.')
+  }
+
+  const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-subscription-key': SARVAM_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'sarvam-105b',
+      messages,
+      max_tokens: maxTokens,
+      temperature
+    })
+  })
+
+  if (res.status === 429) {
+    throw new Error('Sarvam API rate limited. Try again in a moment.')
+  }
+  if (!res.ok) {
+    let errMsg = 'Sarvam API error'
+    try {
+      const err = await res.json()
+      errMsg = err?.error?.message || err?.message || errMsg
+    } catch {
+      // response wasn't JSON, keep default message
+    }
+    throw new Error(errMsg)
+  }
+
+  const data = await res.json()
+  const text = data.choices[0].message.content
+  if (!text || !text.trim()) throw new Error('Empty response from model')
+  return JSON.parse(text.replace(/```json|```/g, '').trim())
 }
 
-export async function findFormula(question, imageBase64 = null) {
+export async function findFormula(question) {
   const messages = [
     {
       role: 'system',
@@ -35,56 +58,11 @@ Return ONLY valid JSON, no markdown, no extra text:
     },
     {
       role: 'user',
-      content: imageBase64
-        ? [
-            { type: 'text', text: question || 'Identify the formula(s) needed to solve this question.' },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-          ]
-        : question
+      content: question
     }
   ]
 
-  const tryWithKey = async (key) => {
-    const body = {
-      model: 'allam-2-7b',
-      messages,
-      max_tokens: 2000,
-      temperature: 0.2
-    }
-
-    if (imageBase64) {
-      body.reasoning_format = 'hidden'
-      body.reasoning_effort = 'none'
-    }
-
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify(body)
-    })
-
-    if (res.status === 429) throw new Error('RATE_LIMIT')
-    if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err?.error?.message || 'Groq API error')
-    }
-
-    const data = await res.json()
-    const text = data.choices[0].message.content
-    if (!text || !text.trim()) throw new Error('Empty response from model')
-    return JSON.parse(text.replace(/```json|```/g, '').trim())
-  }
-
-  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
-    try {
-      return await tryWithKey(getKey())
-    } catch (err) {
-      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
-      throw err
-    }
-  }
-
-  throw new Error('All API keys rate limited. Try again in a moment.')
+  return callSarvam(messages, { maxTokens: 2000, temperature: 0.2 })
 }
 
 export async function generateQuizQuestions({ classLevel, subject, topic, difficulty, count = 5 }) {
@@ -112,42 +90,7 @@ Return ONLY valid JSON, no markdown, no extra text:
     }
   ]
 
-  if (!SARVAM_API_KEY) {
-    throw new Error('Sarvam API key not configured. Set VITE_SARVAM_API_KEY.')
-  }
-
-  const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-subscription-key': SARVAM_API_KEY
-    },
-    body: JSON.stringify({
-      model: 'sarvam-105b',
-      messages,
-      max_tokens: 3000,
-      temperature: 0.7
-    })
-  })
-
-  if (res.status === 429) {
-    throw new Error('Sarvam API rate limited. Try again in a moment.')
-  }
-  if (!res.ok) {
-    let errMsg = 'Sarvam API error'
-    try {
-      const err = await res.json()
-      errMsg = err?.error?.message || err?.message || errMsg
-    } catch {
-      // response wasn't JSON, keep default message
-    }
-    throw new Error(errMsg)
-  }
-
-  const data = await res.json()
-  const text = data.choices[0].message.content
-  if (!text || !text.trim()) throw new Error('Empty response from model')
-  return JSON.parse(text.replace(/```json|```/g, '').trim())
+  return callSarvam(messages, { maxTokens: 3000, temperature: 0.7 })
 }
 
 export async function parseTestQuestions(input) {
@@ -156,7 +99,7 @@ export async function parseTestQuestions(input) {
       role: 'system',
       content: `You are a test question parser for Indian CBSE students (Class 9-12, NEET, JEE).
 
-Parse the provided text or image containing test questions and extract them as structured data.
+Parse the provided text containing test questions and extract them as structured data.
 
 Return ONLY valid JSON, no markdown, no extra text:
 {"questions":[{"text":"...","options":["...","...","...","..."],"correct":0}]}`
@@ -167,38 +110,5 @@ Return ONLY valid JSON, no markdown, no extra text:
     }
   ]
 
-  const tryWithKey = async (key) => {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify({
-        model: 'allam-2-7b',
-        messages,
-        max_tokens: 3000,
-        temperature: 0.5
-      })
-    })
-
-    if (res.status === 429) throw new Error('RATE_LIMIT')
-    if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err?.error?.message || 'Groq API error')
-    }
-
-    const data = await res.json()
-    const text = data.choices[0].message.content
-    if (!text || !text.trim()) throw new Error('Empty response from model')
-    return JSON.parse(text.replace(/```json|```/g, '').trim())
-  }
-
-  for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
-    try {
-      return await tryWithKey(getKey())
-    } catch (err) {
-      if (err.message === 'RATE_LIMIT' && attempt < GROQ_KEYS.length - 1) continue
-      throw err
-    }
-  }
-
-  throw new Error('All API keys rate limited. Try again in a moment.')
+  return callSarvam(messages, { maxTokens: 3000, temperature: 0.5 })
 }

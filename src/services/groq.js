@@ -15,7 +15,8 @@ async function callSarvam(messages, { maxTokens = 2000, temperature = 0.2 } = {}
       model: 'sarvam-105b',
       messages,
       max_tokens: maxTokens,
-      temperature
+      temperature,
+      reasoning_effort: null
     })
   })
 

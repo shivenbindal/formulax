@@ -20,6 +20,7 @@ import CommunityPage from './pages/dashboard/CommunityPage'
 import TeacherPage from './pages/dashboard/TeacherPage'
 import TakeTestPage from './pages/dashboard/TakeTestPage'
 import AdminPage from './pages/dashboard/AdminPage'
+import QuizPage from './pages/dashboard/QuizPage'
 
 function ProtectedDashboard() {
   const { user } = useAuth()
@@ -29,6 +30,7 @@ function ProtectedDashboard() {
       <Routes>
         <Route path="/" element={<DashboardLayout />}>
           <Route path="approach" element={<FormulaFinderPage />} />
+          <Route path="quiz" element={<QuizPage />} />
           <Route path="explorer" element={<ExplorerPage />} />
           <Route path="saved" element={<MySheetsPage />} />
           <Route path="history" element={<HistoryPage />} />

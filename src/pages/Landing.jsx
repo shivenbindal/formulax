@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { findFormula } from '../services/groq'
+import { findFormula, searchTopicFormulas } from '../services/groq'
 
 const FREE_USES_KEY = 'fx_free_uses'
 const MAX_FREE_USES = 3
@@ -9,33 +9,8 @@ const MAX_FREE_USES = 3
 function getFreeUses() { return parseInt(localStorage.getItem(FREE_USES_KEY) || '0') }
 function incrementFreeUses() { localStorage.setItem(FREE_USES_KEY, getFreeUses() + 1) }
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
-
 const HERO_IMAGE_URL = 'https://res.cloudinary.com/dgkaho4y8/image/upload/YOUR_HERO_IMAGE.jpg'
 const MISSION_IMAGE_URL = 'https://res.cloudinary.com/dgkaho4y8/image/upload/YOUR_DESK_IMAGE.jpg'
-
-async function searchTopicFormulas(topic, cls) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a formula reference for Indian students. Given a topic, return ALL formulas from the ${cls} NCERT/CBSE/NEET/JEE syllabus as a JSON array. Each item: { name, formula (with variables defined), unit (or null), description (one line) }. Return ONLY a valid JSON array, no markdown.`
-        },
-        { role: 'user', content: `All formulas for topic: "${topic}" at ${cls} level.` }
-      ],
-      temperature: 0.2,
-      max_tokens: 1500,
-    })
-  })
-  const data = await res.json()
-  const text = data.choices?.[0]?.message?.content || '[]'
-  try { return JSON.parse(text) }
-  catch { const m = text.match(/\[[\s\S]*\]/); return m ? JSON.parse(m[0]) : [] }
-}
 
 function TopicSearch() {
   const [topic, setTopic] = useState('')

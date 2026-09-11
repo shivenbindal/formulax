@@ -14,6 +14,7 @@ const ADMIN_EMAIL = 'shivenbindal@gmail.com'
 const ALL_TABS = [
   { path: 'explorer', label: 'Explorer', Icon: LayoutGrid, color: 'from-blue-500 to-cyan-500' },
   { path: 'approach', label: 'Approach', Icon: Compass, color: 'from-purple-500 to-pink-500' },
+  { path: 'quiz', label: 'Quizzes', Icon: ClipboardList, color: 'from-teal-500 to-cyan-500' },
   { path: 'saved', label: 'My Sheets', Icon: Heart, color: 'from-red-500 to-orange-500' },
   { path: 'community', label: 'Community', Icon: Users, color: 'from-green-500 to-emerald-500' },
   { path: 'teacher', label: 'Teacher', Icon: School, color: 'from-indigo-500 to-blue-500' },
@@ -22,13 +23,13 @@ const ALL_TABS = [
 ]
 
 const LOCKED_TABS = [
-  { label: 'Quizzes', Icon: ClipboardList },
   { label: 'AI Tutor', Icon: Bot },
 ]
 
 const TITLE_MAP = {
   explorer: 'Explorer',
   approach: 'Approach',
+  quiz: 'Quizzes',
   saved: 'My Sheets',
   community: 'Community',
   teacher: 'Teacher',

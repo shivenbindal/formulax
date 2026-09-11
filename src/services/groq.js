@@ -55,7 +55,7 @@ For each formula:
 approach: An array of 3-6 short, concrete, imperative steps for HOW to solve this — not an explanation paragraph. Each step is one clear action, under 15 words, referencing this specific question's values where useful. Never compute or reveal the final numerical answer. Example array: ["Identify the two charges and the distance between them from the question", "Note that this is a straight application of Coulomb's Law", "Substitute the given charge and distance values into the formula", "Keep units consistent — convert distance to metres before substituting"]
 
 Return ONLY valid JSON, no markdown, no extra text:
-{"formulas":[{"name":"...","formula":"...","why":"..."}],"approach":["...","...","..."]}`
+{"formulas":[{"name":"...","formula":"...","why":"..."}],"approach":["...","..."]}`
     },
     {
       role: 'user',
@@ -112,4 +112,29 @@ Return ONLY valid JSON, no markdown, no extra text:
   ]
 
   return callSarvam(messages, { maxTokens: 3000, temperature: 0.5 })
+}
+
+export async function searchTopicFormulas(topic, classLevel) {
+  const messages = [
+    {
+      role: 'system',
+      content: `You are a formula reference for Indian students (CBSE Class 9-12, NEET, JEE). Given a topic, return ALL formulas from the ${classLevel} NCERT/CBSE/NEET/JEE syllabus that relate to it.
+
+For each formula:
+- name: Full specific name of the formula
+- formula: Equation with ALL variables defined inline
+- unit: SI unit of the resulting quantity, or null if dimensionless/not applicable
+- description: One line on what it's used for
+
+Return ONLY a valid JSON array, no markdown, no extra text:
+[{"name":"...","formula":"...","unit":"...","description":"..."}]`
+    },
+    {
+      role: 'user',
+      content: `All formulas for topic: "${topic}" at ${classLevel} level.`
+    }
+  ]
+
+  const result = await callSarvam(messages, { maxTokens: 1500, temperature: 0.2 })
+  return Array.isArray(result) ? result : (result.formulas || [])
 }

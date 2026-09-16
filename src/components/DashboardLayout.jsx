@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Compass, LayoutGrid, Heart, Clock, Sun, Moon, GraduationCap,
-  ChevronLeft, ChevronRight, X, Flame, Menu, Lock, School, ClipboardList, Bot,
+  ChevronLeft, X, Flame, Menu, Lock, School, ClipboardList, Bot,
   Search, Bell, MessageCircle, PlusCircle, Users, Sparkles, Settings, LogOut, Shield,
 } from 'lucide-react'
 import { useDashboard } from '../context/DashboardContext'
@@ -11,20 +11,22 @@ import { syllabus } from '../data/syllabus'
 import ComingSoon from './ComingSoon'
 
 const ADMIN_EMAIL = 'shivenbindal@gmail.com'
+const LIME = '#D4FF00'
+const SIDEBAR_OPEN_W = 240
+const SIDEBAR_CLOSED_W = 76
+
 const ALL_TABS = [
-  { path: 'explorer', label: 'Explorer', Icon: LayoutGrid, color: 'from-blue-500 to-cyan-500' },
-  { path: 'approach', label: 'Approach', Icon: Compass, color: 'from-purple-500 to-pink-500' },
-  { path: 'quiz', label: 'Quizzes', Icon: ClipboardList, color: 'from-teal-500 to-cyan-500' },
-  { path: 'saved', label: 'My Sheets', Icon: Heart, color: 'from-red-500 to-orange-500' },
-  { path: 'community', label: 'Community', Icon: Users, color: 'from-green-500 to-emerald-500' },
-  { path: 'teacher', label: 'Teacher', Icon: School, color: 'from-indigo-500 to-blue-500' },
-  { path: 'history', label: 'History', Icon: Clock, color: 'from-amber-500 to-orange-500' },
-  { path: 'admin', label: 'Admin', Icon: Shield, color: 'from-neutral-700 to-neutral-900' },
+  { path: 'explorer', label: 'Explorer', Icon: LayoutGrid },
+  { path: 'approach', label: 'Approach', Icon: Compass },
+  { path: 'quiz', label: 'Quizzes', Icon: ClipboardList },
+  { path: 'saved', label: 'My Sheets', Icon: Heart },
+  { path: 'community', label: 'Community', Icon: Users },
+  { path: 'teacher', label: 'Teacher', Icon: School },
+  { path: 'history', label: 'History', Icon: Clock },
+  { path: 'admin', label: 'Admin', Icon: Shield },
 ]
 
-const LOCKED_TABS = [
-  { label: 'AI Tutor', Icon: Bot },
-]
+const LOCKED_TABS = [{ label: 'AI Tutor', Icon: Bot }]
 
 const TITLE_MAP = {
   explorer: 'Explorer',
@@ -68,16 +70,16 @@ export default function DashboardLayout() {
   const [comingSoon, setComingSoon] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [bellOpen, setBellOpen] = useState(false)
-  const [notificationHovered, setNotificationHovered] = useState(false)
+
+  const hairline = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+  const hairlineSoft = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+  const mutedText = dark ? 'text-neutral-400' : 'text-neutral-500'
 
   if (!classLoaded)
     return (
       <div className={`min-h-screen flex items-center justify-center ${bg}`}>
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity }}>
-          <Sparkles
-            size={32}
-            className={dark ? 'text-blue-400' : 'text-blue-600'}
-          />
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}>
+          <Sparkles size={26} style={{ color: LIME }} strokeWidth={2} />
         </motion.div>
       </div>
     )
@@ -92,108 +94,65 @@ export default function DashboardLayout() {
     setMobileOpen(false)
   }
 
+  const NavItem = ({ path, label, Icon, collapsed, onNavigate }) => (
+    <NavLink
+      to={`/dashboard/${path}`}
+      onClick={onNavigate}
+      className={({ isActive }) => `
+        flex items-center gap-3 pl-3 pr-3.5 py-2.5 rounded-lg border-l-2
+        text-[13px] font-medium transition-colors duration-150
+        ${isActive
+          ? dark
+            ? 'bg-white/[0.06] text-white'
+            : 'bg-black/[0.04] text-black'
+          : dark
+            ? 'border-transparent text-neutral-400 hover:text-white hover:bg-white/[0.04]'
+            : 'border-transparent text-neutral-500 hover:text-black hover:bg-black/[0.03]'
+        }
+      `}
+      style={({ isActive }) => ({ borderLeftColor: isActive ? LIME : 'transparent' })}
+    >
+      <Icon size={16} strokeWidth={2} className="shrink-0" />
+      {!collapsed && <span>{label}</span>}
+    </NavLink>
+  )
+
   const SidebarContent = ({ collapsed, onNavigate }) => (
     <>
-      {/* Logo Section */}
-      <motion.div
-        className="h-16 px-5 flex items-center justify-between shrink-0 border-b"
-        style={{
-          borderColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-        }}
-      >
-        {!collapsed ? (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-              <Sparkles size={16} className="text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <p className={`font-bold text-sm tracking-[-0.3px] ${text}`}>Formula</p>
-              <p className={`text-[10px] ${dark ? 'text-neutral-400' : 'text-neutral-600'}`}>Labs</p>
-            </div>
-          </motion.div>
-        ) : (
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto">
-            <Sparkles size={14} className="text-white" strokeWidth={2.5} />
+      {/* Logo */}
+      <div className="h-16 px-5 flex items-center shrink-0 border-b" style={{ borderColor: hairlineSoft }}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${dark ? 'bg-white' : 'bg-black'}`}>
+            <Sparkles size={15} style={{ color: LIME }} strokeWidth={2.5} />
           </div>
-        )}
-      </motion.div>
+          {!collapsed && (
+            <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}>
+              <p className={`font-bold text-sm tracking-[-0.3px] leading-none ${text}`}>Formula</p>
+              <p className={`text-[10px] leading-none mt-0.5 ${mutedText}`}>Labs</p>
+            </motion.div>
+          )}
+        </div>
+      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {/* Main Tabs */}
-        {TABS.map(({ path, label, Icon, color }) => (
-          <NavLink
-            key={path}
-            to={`/dashboard/${path}`}
-            onClick={onNavigate}
-            className={({ isActive }) => `
-              relative group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl
-              text-[13px] font-medium transition-all duration-300
-              ${isActive
-                ? dark
-                  ? 'bg-white/10 text-white'
-                  : 'bg-black/5 text-black'
-                : dark
-                  ? 'text-neutral-400 hover:text-white hover:bg-white/5'
-                  : 'text-neutral-600 hover:text-black hover:bg-black/[0.03]'
-              }
-            `}
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <motion.div
-                    layoutId="navActive"
-                    className={`absolute inset-0 rounded-xl bg-gradient-to-r ${color}`}
-                    style={{ opacity: 0.1 }}
-                    transition={{ type: 'spring', bounce: 0.2 }}
-                  />
-                )}
-                <div className={`relative shrink-0 ${isActive ? 'text-white' : ''}`}>
-                  <Icon size={16} strokeWidth={2} />
-                </div>
-                {!collapsed && <span className="relative">{label}</span>}
-                {isActive && !collapsed && (
-                  <motion.div
-                    layoutId="navDot"
-                    className="absolute right-3.5 w-2 h-2 rounded-full bg-current"
-                    transition={{ type: 'spring', bounce: 0.2 }}
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {TABS.map((t) => (
+          <NavItem key={t.path} {...t} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
 
-        {/* Coming Soon Section */}
         {!collapsed && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="px-3.5 pt-6 pb-2"
-          >
-            <p
-              className={`text-[10px] font-bold uppercase tracking-widest ${
-                dark ? 'text-neutral-500' : 'text-neutral-500'
-              }`}
-            >
-              Coming Soon
-            </p>
-          </motion.div>
+          <p className={`px-3.5 pt-6 pb-2 text-[10px] font-semibold uppercase tracking-widest ${mutedText}`}>
+            Coming soon
+          </p>
         )}
 
         {LOCKED_TABS.map(({ label, Icon }) => (
-          <motion.button
+          <button
             key={label}
             onClick={() => setComingSoon(label)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all
-              ${dark ? 'text-neutral-500 hover:bg-white/5' : 'text-neutral-500 hover:bg-black/[0.03]'} opacity-50`}
+            className={`w-full flex items-center gap-3 pl-3 pr-3.5 py-2.5 rounded-lg border-l-2 border-transparent
+              text-[13px] font-medium transition-colors opacity-50
+              ${dark ? 'text-neutral-500 hover:bg-white/[0.04]' : 'text-neutral-500 hover:bg-black/[0.03]'}`}
           >
             <Icon size={16} strokeWidth={2} className="shrink-0" />
             {!collapsed && (
@@ -202,136 +161,77 @@ export default function DashboardLayout() {
                 <Lock size={12} strokeWidth={2} />
               </>
             )}
-          </motion.button>
+          </button>
         ))}
       </nav>
 
-      {/* Class Selector */}
-      <motion.div
-        className="px-3 py-3 border-t"
-        style={{
-          borderColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-        }}
-      >
-        <motion.button
-          whileHover={{ scale: 1.02 }}
+      {/* Footer: class selector + profile */}
+      <div className="border-t" style={{ borderColor: hairlineSoft }}>
+        <button
           onClick={() => setClassPanelOpen(true)}
-          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all
-            ${dark ? 'text-neutral-400 hover:bg-white/5' : 'text-neutral-600 hover:bg-black/[0.03]'}`}
+          className={`w-full flex items-center gap-3 px-3 pt-3 pb-2.5 text-[13px] font-medium transition-colors
+            ${dark ? 'text-neutral-300 hover:bg-white/[0.04]' : 'text-neutral-700 hover:bg-black/[0.03]'}`}
         >
-          <div
-            className={`w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white shrink-0`}
-          >
-            <GraduationCap size={12} strokeWidth={2.5} />
+          <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border ${dark ? 'border-white/15' : 'border-black/15'}`}>
+            <GraduationCap size={12} strokeWidth={2} />
           </div>
           {!collapsed && (
             <>
               <span className={`flex-1 text-left font-semibold ${text}`}>{selectedClass}</span>
-              <Settings size={12} strokeWidth={2} className="text-neutral-400" />
+              <Settings size={12} strokeWidth={2} className={mutedText} />
             </>
           )}
-        </motion.button>
-      </motion.div>
+        </button>
 
-      {/* User Profile */}
-      <motion.div
-        className="p-3 border-t"
-        style={{
-          borderColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-        }}
-      >
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center gap-3 cursor-pointer"
-        >
-          <motion.img
-            src={user?.photoURL}
-            className="w-9 h-9 rounded-full ring-2"
-            style={{
-              ringColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-            }}
-          />
+        <div className="flex items-center gap-3 px-3 pb-3 pt-1">
+          <img src={user?.photoURL} className={`w-8 h-8 rounded-full shrink-0 border ${dark ? 'border-white/15' : 'border-black/10'}`} alt="" />
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className={`text-[12px] font-semibold truncate ${text}`}>
-                {user?.displayName}
-              </p>
-              <motion.button
+              <p className={`text-[12px] font-semibold truncate ${text}`}>{user?.displayName}</p>
+              <button
                 onClick={handleLogout}
-                className={`text-[11px] font-medium transition-colors flex items-center gap-1
+                className={`text-[11px] font-medium flex items-center gap-1 transition-colors
                   ${dark ? 'text-neutral-500 hover:text-red-400' : 'text-neutral-500 hover:text-red-600'}`}
               >
                 <LogOut size={10} />
                 Sign out
-              </motion.button>
+              </button>
             </div>
           )}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </>
   )
 
   return (
-    <div
-      className={`min-h-screen flex font-[-apple-system,BlinkMacSystemFont,'SF_Pro_Display','Segoe_UI',Roboto,sans-serif] ${bg}`}
-    >
+    <div className={`min-h-screen flex font-[-apple-system,BlinkMacSystemFont,'SF_Pro_Display','Segoe_UI',Roboto,sans-serif] ${bg}`}>
       {/* DESKTOP SIDEBAR */}
       <motion.aside
         initial={false}
-        animate={{ width: sidebarOpen ? 256 : 80 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className={`hidden md:flex ${surface} flex-col h-screen sticky top-0 border-r relative overflow-hidden`}
-        style={{
-          borderColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-        }}
+        animate={{ width: sidebarOpen ? SIDEBAR_OPEN_W : SIDEBAR_CLOSED_W }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className={`hidden md:flex ${surface} flex-col h-screen sticky top-0 border-r relative`}
+        style={{ borderColor: hairlineSoft }}
       >
         <SidebarContent collapsed={!sidebarOpen} />
 
-        {/* Collapse Button */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className={`absolute -right-3 top-8 w-6 h-6 rounded-full flex items-center justify-center transition-all z-10
-            ${dark ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'bg-white text-black hover:bg-neutral-100'} shadow-lg`}
+          className={`absolute -right-3 top-8 w-6 h-6 rounded-full flex items-center justify-center border transition-colors z-10
+            ${dark ? 'bg-black border-white/15 text-white hover:bg-neutral-900' : 'bg-white border-black/10 text-black hover:bg-neutral-50'}`}
         >
-          <motion.div
-            animate={{ rotate: sidebarOpen ? 0 : 180 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div animate={{ rotate: sidebarOpen ? 0 : 180 }} transition={{ duration: 0.25 }}>
             <ChevronLeft size={12} strokeWidth={2.5} />
           </motion.div>
-        </motion.button>
+        </button>
 
-        {/* Theme Toggle */}
-        <motion.div
-          className="absolute bottom-24 -right-3 flex flex-col rounded-full shadow-lg overflow-hidden z-10"
-          style={{
-            background: dark ? 'rgba(20, 20, 20, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-            border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-          }}
+        <button
+          onClick={toggleDark}
+          className={`absolute bottom-24 -right-3 w-6 h-6 rounded-full flex items-center justify-center border transition-colors z-10
+            ${dark ? 'bg-black border-white/15 text-neutral-300 hover:text-white' : 'bg-white border-black/10 text-neutral-500 hover:text-black'}`}
         >
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={toggleDark}
-            className={`w-6 h-6 flex items-center justify-center transition-all ${
-              !dark ? 'bg-black text-yellow-400' : 'text-neutral-500'
-            }`}
-          >
-            <Sun size={12} strokeWidth={2} />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={toggleDark}
-            className={`w-6 h-6 flex items-center justify-center transition-all ${
-              dark ? 'bg-black text-blue-400' : 'text-neutral-500'
-            }`}
-          >
-            <Moon size={12} strokeWidth={2} />
-          </motion.button>
-        </motion.div>
+          {dark ? <Moon size={12} strokeWidth={2} /> : <Sun size={12} strokeWidth={2} />}
+        </button>
       </motion.aside>
 
       {/* MOBILE DRAWER */}
@@ -356,7 +256,8 @@ export default function DashboardLayout() {
               onDragEnd={(e, info) => {
                 if (info.offset.x < -80 || info.velocity.x < -400) setMobileOpen(false)
               }}
-              className={`fixed top-0 left-0 h-screen w-72 z-50 flex flex-col ${surface} shadow-2xl md:hidden`}
+              className={`fixed top-0 left-0 h-screen w-72 z-50 flex flex-col ${surface} border-r md:hidden`}
+              style={{ borderColor: hairlineSoft }}
             >
               <SidebarContent collapsed={false} onNavigate={() => setMobileOpen(false)} />
             </motion.div>
@@ -366,42 +267,24 @@ export default function DashboardLayout() {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 overflow-auto">
-        {/* Top Bar */}
-        <motion.div
+        <div
           className={`h-16 px-5 md:px-8 flex items-center justify-between gap-4 border-b ${surface} sticky top-0 z-10`}
-          style={{
-            borderColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-          }}
+          style={{ borderColor: hairlineSoft }}
         >
           <div className="flex items-center gap-3 shrink-0">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <button
               onClick={() => setMobileOpen(true)}
               className={`md:hidden ${dark ? 'text-neutral-400 hover:text-white' : 'text-neutral-600 hover:text-black'}`}
             >
               <Menu size={20} strokeWidth={2} />
-            </motion.button>
-            <motion.h1
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={`hidden sm:block text-lg font-bold tracking-[-0.3px] ${text}`}
-            >
-              {pageTitle}
-            </motion.h1>
+            </button>
+            <h1 className={`hidden sm:block text-lg font-bold tracking-[-0.3px] ${text}`}>{pageTitle}</h1>
           </div>
 
-          {/* Search Bar */}
-          <motion.form
-            onSubmit={handleSearchSubmit}
-            className="flex-1 max-w-md hidden sm:block"
-            whileFocus={{ scale: 1.02 }}
-          >
-            <div
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all
-                ${dark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/[0.03] hover:bg-black/5'}`}
-            >
-              <Search size={14} strokeWidth={2} className="text-neutral-400 shrink-0" />
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md hidden sm:block">
+            <div className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-colors
+              ${dark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/[0.03] hover:bg-black/[0.05]'}`}>
+              <Search size={14} strokeWidth={2} className={`shrink-0 ${mutedText}`} />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -409,168 +292,139 @@ export default function DashboardLayout() {
                 className={`bg-transparent border-0 outline-none text-[13px] w-full placeholder-neutral-400 ${text}`}
               />
             </div>
-          </motion.form>
+          </form>
 
-          {/* Right Actions */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Streak */}
             {streak > 0 && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold
-                  ${dark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-100 text-orange-600'}`}
-              >
-                <motion.div animate={{ rotate: [0, -20, 20, 0] }} transition={{ duration: 0.6 }}>
-                  <Flame size={12} strokeWidth={2.5} />
-                </motion.div>
+              <div className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold border
+                ${dark ? 'border-white/10 text-neutral-300' : 'border-black/10 text-neutral-700'}`}>
+                <Flame size={12} strokeWidth={2.5} style={{ color: LIME }} />
                 <span>{streak} day{streak > 1 ? 's' : ''}</span>
-              </motion.div>
+              </div>
             )}
 
-            {/* Ask Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => navigate('/dashboard/community?compose=true')}
-              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all
-                ${dark ? 'bg-white text-black hover:bg-neutral-200' : 'bg-black text-white hover:bg-neutral-900'}`}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold text-black transition-transform hover:scale-[1.03]"
+              style={{ backgroundColor: LIME }}
             >
               <PlusCircle size={14} strokeWidth={2.5} />
               <span>Ask</span>
-            </motion.button>
+            </button>
 
-            {/* Notifications */}
-            <div className="relative">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setBellOpen(!bellOpen)}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors
-                  ${dark ? 'text-neutral-400 hover:bg-white/10' : 'text-neutral-600 hover:bg-black/[0.05]'}`}
-              >
-                <Bell size={16} strokeWidth={2} />
-              </motion.button>
-              <AnimatePresence>
-                {bellOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    className={`absolute right-0 mt-3 w-72 rounded-2xl shadow-xl border p-5 z-20
-                      ${dark ? 'bg-neutral-900 border-white/10' : 'bg-white border-black/10'}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <p className={`text-sm font-bold ${text}`}>Notifications</p>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        onClick={() => setBellOpen(false)}
-                        className={`text-neutral-400 hover:text-current`}
-                      >
-                        <X size={14} strokeWidth={2} />
-                      </motion.button>
-                    </div>
-                    <p className={`text-[12px] ${dark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                      Nothing new yet — replies and follows will show up here.
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <button
+              onClick={() => setBellOpen(true)}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors
+                ${dark ? 'text-neutral-400 hover:bg-white/10' : 'text-neutral-600 hover:bg-black/[0.05]'}`}
+            >
+              <Bell size={16} strokeWidth={2} />
+            </button>
 
-            {/* Messages */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <button
               onClick={() => navigate('/dashboard/community?tab=chat')}
               className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors
                 ${dark ? 'text-neutral-400 hover:bg-white/10' : 'text-neutral-600 hover:bg-black/[0.05]'}`}
             >
               <MessageCircle size={16} strokeWidth={2} />
-            </motion.button>
+            </button>
 
-            {/* Profile */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <button
               onClick={() => navigate('/dashboard/community?tab=profile')}
-              className="shrink-0 ring-2 ring-transparent hover:ring-blue-500/30 rounded-full transition-all"
+              className={`shrink-0 rounded-full border ${dark ? 'border-white/15' : 'border-black/10'}`}
             >
               <img src={user?.photoURL} className="w-8 h-8 rounded-full" alt="Profile" />
-            </motion.button>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Page Content */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
           <Outlet />
         </motion.div>
       </main>
 
-      {/* CLASS PANEL */}
+      {/* CLASS SWITCHER — modal */}
       <AnimatePresence>
         {classPanelOpen && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setClassPanelOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setClassPanelOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-            />
-            <motion.div
-              initial={{ x: -320, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -320, opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className={`fixed top-0 left-0 h-screen w-80 ${surface} z-50 p-6 md:p-8 shadow-2xl border-r`}
-              style={{
-                borderColor: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-              }}
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.15 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-sm rounded-2xl border p-6 ${surface}`}
+              style={{ borderColor: hairline }}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className={`text-lg font-bold tracking-[-0.3px] ${text}`}>
-                  Change Class
-                </h3>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+              <div className="flex items-center justify-between mb-5">
+                <h3 className={`text-base font-bold tracking-[-0.3px] ${text}`}>Change class</h3>
+                <button
                   onClick={() => setClassPanelOpen(false)}
-                  className={`${dark ? 'text-neutral-400 hover:text-white' : 'text-neutral-600 hover:text-black'}`}
+                  className={dark ? 'text-neutral-400 hover:text-white' : 'text-neutral-500 hover:text-black'}
                 >
-                  <X size={18} strokeWidth={2} />
-                </motion.button>
+                  <X size={16} strokeWidth={2} />
+                </button>
               </div>
-              <div className="space-y-2">
-                {Object.keys(syllabus).map((c, index) => (
-                  <motion.button
-                    key={c}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleClassChange(c)}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-[13px] font-semibold transition-all ${
-                      selectedClass === c
-                        ? dark
-                          ? 'bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-white border border-blue-500/50'
-                          : 'bg-gradient-to-r from-blue-50 to-purple-50 text-black border border-blue-400'
-                        : dark
-                          ? 'border border-white/10 text-neutral-400 hover:bg-white/5 hover:text-white'
-                          : 'border border-black/10 text-neutral-600 hover:bg-black/[0.03]'
-                    }`}
-                  >
-                    {c}
-                  </motion.button>
-                ))}
+              <div className="space-y-1.5">
+                {Object.keys(syllabus).map((c) => {
+                  const active = selectedClass === c
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => { handleClassChange(c); setClassPanelOpen(false) }}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-[13px] font-semibold border-l-2 transition-colors
+                        ${active
+                          ? dark ? 'bg-white/[0.06] text-white' : 'bg-black/[0.04] text-black'
+                          : dark ? 'border-transparent text-neutral-400 hover:bg-white/[0.04]' : 'border-transparent text-neutral-600 hover:bg-black/[0.03]'
+                        }`}
+                      style={{ borderLeftColor: active ? LIME : 'transparent' }}
+                    >
+                      {c}
+                    </button>
+                  )
+                })}
               </div>
             </motion.div>
-          </>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* NOTIFICATIONS — modal */}
+      <AnimatePresence>
+        {bellOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setBellOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.15 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-sm rounded-2xl border p-6 ${surface}`}
+              style={{ borderColor: hairline }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className={`text-base font-bold tracking-[-0.3px] ${text}`}>Notifications</h3>
+                <button
+                  onClick={() => setBellOpen(false)}
+                  className={dark ? 'text-neutral-400 hover:text-white' : 'text-neutral-500 hover:text-black'}
+                >
+                  <X size={16} strokeWidth={2} />
+                </button>
+              </div>
+              <p className={`text-[12px] ${mutedText}`}>Nothing new yet — replies and follows will show up here.</p>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

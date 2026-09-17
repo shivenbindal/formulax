@@ -1,6 +1,5 @@
-// src/pages/dashboard/DashboardLayout.jsx
 import { useState, useEffect, useRef } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Compass, FlaskConical, BookMarked, History as HistoryIcon,
@@ -8,26 +7,18 @@ import {
   Sun, Moon, Menu, X, Lock, LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDashboard } from "@/context/DashboardContext"; // assumed existing — adjust path if different
-import { auth } from "@/lib/firebase"; // assumed existing firebase init
-import { signOut } from "firebase/auth";
+import { useDashboard } from "@/context/DashboardContext"; // adjust path if different — this file no longer needs to know about firebase directly
 
-// ---- S monogram mark ----
 function Monogram({ size = 28 }) {
   return (
-    <div
-      className="flex items-center justify-center rounded-xl font-semibold shrink-0"
-      style={{
-        width: size,
-        height: size,
-        background: "#D4FF00",
-        color: "#0A0A0A",
-        fontFamily: "'Fraunces', serif",
-        fontSize: size * 0.55,
-      }}
+    <motion.div
+      whileHover={{ rotate: 8 }}
+      transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      className="flex items-center justify-center rounded-full border-2 shrink-0"
+      style={{ width: size, height: size, borderColor: "#0A0A0A", color: "#0A0A0A" }}
     >
-      S
-    </div>
+      <span style={{ fontFamily: "serif", fontSize: size * 0.5 }}>S</span>
+    </motion.div>
   );
 }
 
@@ -43,8 +34,11 @@ const NAV_ITEMS = [
 const ADMIN_EMAIL = "shivenbindal@gmail.com";
 
 export default function DashboardLayout() {
-  const { user, classLevel, setClassLevel, theme, toggleTheme } = useDashboard();
+  // signOut is expected to come from your context, wherever it currently
+  // calls firebase's signOut(auth) — plug it in there if it isn't already exposed.
+  const { user, classLevel, setClassLevel, theme, toggleTheme, signOut } = useDashboard();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -68,69 +62,81 @@ export default function DashboardLayout() {
   const sidebarWidth = collapsed ? 76 : 240;
 
   async function handleSignOut() {
-    await signOut(auth);
+    await signOut?.();
     navigate("/");
   }
 
+  const activeKey = NAV_ITEMS.find((i) => i.path && location.pathname.startsWith(i.path))?.key;
+
   return (
-    <div
-      className="flex h-screen w-full overflow-hidden"
-      style={{ background: "#F5F5F3" }}
-    >
+    <div className="flex h-screen w-full overflow-hidden bg-white">
       {/* ---------- Desktop sidebar ---------- */}
-      <aside
-        className="hidden md:flex flex-col shrink-0 border-r transition-[width] duration-200 ease-out"
-        style={{
-          width: sidebarWidth,
-          background: "#FAFAF8",
-          borderColor: "rgba(10,10,10,0.08)",
-        }}
+      <motion.aside
+        animate={{ width: sidebarWidth }}
+        transition={{ type: "spring", stiffness: 260, damping: 30 }}
+        className="hidden md:flex flex-col shrink-0 border-r"
+        style={{ borderColor: "rgba(10,10,10,0.1)" }}
       >
         <div className="flex items-center gap-2.5 px-4 h-16 shrink-0">
           <Monogram />
-          {!collapsed && (
-            <span
-              className="text-[15px] font-medium tracking-tight"
-              style={{ color: "#0A0A0A" }}
-            >
-              FormulaLabs
-            </span>
-          )}
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="text-[15px] font-semibold tracking-tight whitespace-nowrap overflow-hidden"
+                style={{ color: "#0A0A0A" }}
+              >
+                FormulaLabs
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
+          {NAV_ITEMS.map((item, i) => {
             const Icon = item.icon;
+            const isActive = item.key === activeKey;
+
             if (item.locked) {
               return (
-                <div
+                <motion.div
                   key={item.key}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] opacity-40 cursor-not-allowed select-none"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 0.4, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-full text-[13.5px] cursor-not-allowed select-none"
                   style={{ color: "#0A0A0A" }}
                   title="Coming soon"
                 >
                   <Icon size={17} strokeWidth={2} className="shrink-0" />
                   {!collapsed && <span>{item.label}</span>}
-                </div>
+                </motion.div>
               );
             }
+
             return (
-              <NavLink
-                key={item.key}
-                to={item.path}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] transition-colors",
-                    isActive ? "font-medium" : "hover:bg-black/[0.04]"
-                  )
-                }
-                style={({ isActive }) => ({
-                  background: isActive ? "#0A0A0A" : "transparent",
-                  color: isActive ? "#FAFAF8" : "#0A0A0A",
-                })}
-              >
-                <Icon size={17} strokeWidth={2} className="shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+              <NavLink key={item.key} to={item.path} className="block relative">
+                <motion.div
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  whileHover={{ x: isActive ? 0 : 2 }}
+                  className="relative flex items-center gap-3 px-3 py-2.5 rounded-full text-[13.5px] z-10"
+                  style={{ color: isActive ? "#FFFFFF" : "#0A0A0A" }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNavPill"
+                      transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                      className="absolute inset-0 rounded-full -z-10"
+                      style={{ background: "#0A0A0A" }}
+                    />
+                  )}
+                  <Icon size={17} strokeWidth={2} className="shrink-0" />
+                  {!collapsed && <span>{item.label}</span>}
+                </motion.div>
               </NavLink>
             );
           })}
@@ -138,8 +144,8 @@ export default function DashboardLayout() {
           {isAdmin && (
             <NavLink
               to="/dashboard/admin"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] hover:bg-black/[0.04] mt-2 pt-3 border-t"
-              style={{ color: "#0A0A0A", borderColor: "rgba(10,10,10,0.08)" }}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-full text-[13.5px] hover:bg-black/[0.05] mt-2 pt-4 border-t"
+              style={{ color: "#0A0A0A", borderColor: "rgba(10,10,10,0.1)" }}
             >
               <Shield size={17} strokeWidth={2} className="shrink-0" />
               {!collapsed && <span>Admin</span>}
@@ -147,15 +153,15 @@ export default function DashboardLayout() {
           )}
         </nav>
 
-        <div className="p-3 border-t" style={{ borderColor: "rgba(10,10,10,0.08)" }}>
+        <div className="p-3 border-t" style={{ borderColor: "rgba(10,10,10,0.1)" }}>
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileMenuOpen((v) => !v)}
-              className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-black/[0.04] transition-colors"
+              className="w-full flex items-center gap-2.5 px-2 py-2 rounded-full hover:bg-black/[0.05] transition-colors"
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-medium shrink-0"
-                style={{ background: "#0A0A0A", color: "#FAFAF8" }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-medium shrink-0 border-2"
+                style={{ borderColor: "#0A0A0A", color: "#0A0A0A" }}
               >
                 {(user?.displayName || "U")[0].toUpperCase()}
               </div>
@@ -172,16 +178,16 @@ export default function DashboardLayout() {
             <AnimatePresence>
               {profileMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute bottom-full mb-2 left-0 right-0 rounded-xl border shadow-lg overflow-hidden"
-                  style={{ background: "#FAFAF8", borderColor: "rgba(10,10,10,0.08)" }}
+                  className="absolute bottom-full mb-2 left-0 right-0 rounded-2xl border shadow-lg overflow-hidden bg-white"
+                  style={{ borderColor: "rgba(10,10,10,0.1)" }}
                 >
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-black/[0.04]"
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-black/[0.05]"
                     style={{ color: "#0A0A0A" }}
                   >
                     <LogOut size={15} />
@@ -196,11 +202,11 @@ export default function DashboardLayout() {
         <button
           onClick={() => setCollapsed((v) => !v)}
           className="h-8 border-t text-[11px] opacity-50 hover:opacity-100 transition-opacity"
-          style={{ borderColor: "rgba(10,10,10,0.08)" }}
+          style={{ borderColor: "rgba(10,10,10,0.1)" }}
         >
           {collapsed ? "→" : "← Collapse"}
         </button>
-      </aside>
+      </motion.aside>
 
       {/* ---------- Mobile drawer ---------- */}
       <AnimatePresence>
@@ -220,17 +226,14 @@ export default function DashboardLayout() {
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.15}
-              onDragEnd={(_, info) => {
-                if (info.offset.x < -80) setMobileOpen(false);
-              }}
+              onDragEnd={(_, info) => info.offset.x < -80 && setMobileOpen(false)}
               transition={{ type: "tween", duration: 0.22 }}
-              className="fixed top-0 left-0 bottom-0 w-[78%] max-w-[300px] z-50 flex flex-col md:hidden"
-              style={{ background: "#FAFAF8" }}
+              className="fixed top-0 left-0 bottom-0 w-[78%] max-w-[300px] z-50 flex flex-col md:hidden bg-white"
             >
               <div className="flex items-center justify-between px-4 h-16 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <Monogram />
-                  <span className="text-[15px] font-medium" style={{ color: "#0A0A0A" }}>
+                  <span className="text-[15px] font-semibold" style={{ color: "#0A0A0A" }}>
                     FormulaLabs
                   </span>
                 </div>
@@ -239,32 +242,37 @@ export default function DashboardLayout() {
                 </button>
               </div>
               <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                {NAV_ITEMS.filter((i) => !i.locked).map((item) => {
+                {NAV_ITEMS.filter((i) => !i.locked).map((item, i) => {
                   const Icon = item.icon;
+                  const isActive = item.key === activeKey;
                   return (
-                    <NavLink
+                    <motion.div
                       key={item.key}
-                      to={item.path}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        cn("flex items-center gap-3 px-3 py-3 rounded-xl text-[14px]")
-                      }
-                      style={({ isActive }) => ({
-                        background: isActive ? "#0A0A0A" : "transparent",
-                        color: isActive ? "#FAFAF8" : "#0A0A0A",
-                      })}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
                     >
-                      <Icon size={18} />
-                      {item.label}
-                    </NavLink>
+                      <NavLink
+                        to={item.path}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-full text-[14px]"
+                        style={{
+                          background: isActive ? "#0A0A0A" : "transparent",
+                          color: isActive ? "#FFFFFF" : "#0A0A0A",
+                        }}
+                      >
+                        <Icon size={18} />
+                        {item.label}
+                      </NavLink>
+                    </motion.div>
                   );
                 })}
                 {isAdmin && (
                   <NavLink
                     to="/dashboard/admin"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] mt-2 pt-3 border-t"
-                    style={{ color: "#0A0A0A", borderColor: "rgba(10,10,10,0.08)" }}
+                    className="flex items-center gap-3 px-3 py-3 rounded-full text-[14px] mt-2 pt-4 border-t"
+                    style={{ color: "#0A0A0A", borderColor: "rgba(10,10,10,0.1)" }}
                   >
                     <Shield size={18} />
                     Admin
@@ -278,10 +286,12 @@ export default function DashboardLayout() {
 
       {/* ---------- Main column ---------- */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar */}
-        <header
-          className="flex items-center gap-3 h-16 px-4 md:px-6 border-b shrink-0"
-          style={{ borderColor: "rgba(10,10,10,0.08)", background: "#F5F5F3" }}
+        <motion.header
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-3 h-16 px-4 md:px-6 border-b shrink-0 bg-white"
+          style={{ borderColor: "rgba(10,10,10,0.1)" }}
         >
           <button className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu size={22} style={{ color: "#0A0A0A" }} />
@@ -289,8 +299,8 @@ export default function DashboardLayout() {
 
           <div className="hidden md:flex items-center gap-2 flex-1 max-w-md">
             <div
-              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl border bg-white/60"
-              style={{ borderColor: "rgba(10,10,10,0.08)" }}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-full border"
+              style={{ borderColor: "rgba(10,10,10,0.12)" }}
             >
               <Search size={15} className="opacity-50 shrink-0" />
               <input
@@ -304,20 +314,20 @@ export default function DashboardLayout() {
           <div className="flex-1 md:hidden" />
 
           <div className="flex items-center gap-2 ml-auto">
-            {/* Streak badge */}
+            {/* Streak badge — color as a dot, not a fill */}
             <div
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[12px] font-medium"
-              style={{ background: "#D4FF00", color: "#0A0A0A" }}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium"
+              style={{ borderColor: "rgba(10,10,10,0.12)", color: "#0A0A0A" }}
             >
-              🔥 {user?.streak ?? 0}
+              <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-accent-red, #FF4B3E)" }} />
+              {user?.streak ?? 0} day streak
             </div>
 
-            {/* Class dropdown */}
             <div className="relative hidden sm:block">
               <button
                 onClick={() => setClassMenuOpen((v) => !v)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px]"
-                style={{ borderColor: "rgba(10,10,10,0.1)", color: "#0A0A0A" }}
+                style={{ borderColor: "rgba(10,10,10,0.12)", color: "#0A0A0A" }}
               >
                 Class {classLevel || "12"}
                 <ChevronDown size={13} />
@@ -325,11 +335,12 @@ export default function DashboardLayout() {
               <AnimatePresence>
                 {classMenuOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    className="absolute right-0 mt-2 w-28 rounded-xl border shadow-lg overflow-hidden z-10"
-                    style={{ background: "#FAFAF8", borderColor: "rgba(10,10,10,0.08)" }}
+                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-28 rounded-2xl border shadow-lg overflow-hidden z-10 bg-white"
+                    style={{ borderColor: "rgba(10,10,10,0.1)" }}
                   >
                     {["9", "10", "11", "12"].map((c) => (
                       <button
@@ -338,7 +349,7 @@ export default function DashboardLayout() {
                           setClassLevel(c);
                           setClassMenuOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-[13px] hover:bg-black/[0.04]"
+                        className="w-full text-left px-3 py-2 text-[13px] hover:bg-black/[0.05]"
                         style={{ color: "#0A0A0A" }}
                       >
                         Class {c}
@@ -349,52 +360,64 @@ export default function DashboardLayout() {
               </AnimatePresence>
             </div>
 
-            {/* Ask CTA */}
-            <NavLink
-              to="/dashboard/approach"
-              className="px-4 py-2 rounded-full text-[13px] font-medium"
-              style={{ background: "#D4FF00", color: "#0A0A0A" }}
-            >
-              Ask
-            </NavLink>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              <NavLink
+                to="/dashboard/approach"
+                className="px-4 py-2 rounded-full text-[13px] font-medium block"
+                style={{ background: "#0A0A0A", color: "#FFFFFF" }}
+              >
+                Ask
+              </NavLink>
+            </motion.div>
 
-            {/* Notifications */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
               onClick={() => setNotifOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.04]"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.05]"
             >
               <Bell size={17} style={{ color: "#0A0A0A" }} />
-            </button>
+            </motion.button>
 
-            {/* Messages */}
-            <NavLink
-              to="/dashboard/community?tab=chat"
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.04]"
-            >
-              <MessageCircle size={17} style={{ color: "#0A0A0A" }} />
-            </NavLink>
+            <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}>
+              <NavLink
+                to="/dashboard/community?tab=chat"
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.05]"
+              >
+                <MessageCircle size={17} style={{ color: "#0A0A0A" }} />
+              </NavLink>
+            </motion.div>
 
-            {/* Theme toggle */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08, rotate: 15 }}
+              whileTap={{ scale: 0.94 }}
               onClick={toggleTheme}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.04]"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.05]"
             >
               {theme === "dark" ? (
                 <Sun size={17} style={{ color: "#0A0A0A" }} />
               ) : (
                 <Moon size={17} style={{ color: "#0A0A0A" }} />
               )}
-            </button>
+            </motion.button>
           </div>
-        </header>
+        </motion.header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
-      {/* ---------- Notifications modal ---------- */}
       <AnimatePresence>
         {notifOpen && (
           <motion.div
@@ -410,26 +433,21 @@ export default function DashboardLayout() {
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ duration: 0.15 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-[92%] max-w-sm rounded-2xl border shadow-xl overflow-hidden"
-              style={{ background: "#FAFAF8", borderColor: "rgba(10,10,10,0.08)" }}
+              className="w-[92%] max-w-sm rounded-2xl border shadow-xl overflow-hidden bg-white"
+              style={{ borderColor: "rgba(10,10,10,0.1)" }}
             >
               <div
                 className="px-4 py-3 border-b flex items-center justify-between"
-                style={{ borderColor: "rgba(10,10,10,0.08)" }}
+                style={{ borderColor: "rgba(10,10,10,0.1)" }}
               >
-                <h3
-                  className="text-[15px]"
-                  style={{ fontFamily: "'Fraunces', serif", color: "#0A0A0A" }}
-                >
+                <h3 className="text-[15px] font-semibold" style={{ color: "#0A0A0A" }}>
                   Notifications
                 </h3>
                 <button onClick={() => setNotifOpen(false)}>
                   <X size={16} style={{ color: "#0A0A0A" }} />
                 </button>
               </div>
-              <div className="p-6 text-center text-[13px] opacity-50">
-                You're all caught up.
-              </div>
+              <div className="p-6 text-center text-[13px] opacity-50">You're all caught up.</div>
             </motion.div>
           </motion.div>
         )}

@@ -3,17 +3,25 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', sans-serif;
-  
-  --color-bg-canvas: #FAFAF8;
-  --color-text-primary: #0A0A0A;
-  --color-accent-lime: #D4FF00;
-  
-  /* Subject colors for bento redesign */
-  --color-physics: #3B82F6;
-  --color-chemistry: #FB7185;
-  --color-math: #A78BFA;
-  --color-biology: #10B981;
+  /* canvas & ink — monochrome base, no lime */
+  --color-canvas: #FFFFFF;
+  --color-canvas-2: #FAFAFA;
+  --color-ink: #0A0A0A;
+  --color-ink-soft: rgba(10, 10, 10, 0.55);
+  --color-border: rgba(10, 10, 10, 0.12);
+
+  /* accent dots — used only as small circular marks, never as fills */
+  --color-accent-red: #FF4B3E;
+  --color-accent-blue: #3E5CFF;
+  --color-accent-violet: #B9A6FF;
+
+  /* subject colors stay — these are functional tags, not brand decoration */
+  --color-physics: #3E7BFA;
+  --color-chemistry: #FF6B5B;
+  --color-math: #8B5CF6;
+  --color-biology: #34A870;
+
+  --font-sans: 'Inter', -apple-system, sans-serif;
 }
 
 body {

@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Compass, FlaskConical, BookMarked, History as HistoryIcon,
   GraduationCap, Shield, Bell, MessageCircle, Search, ChevronDown,
-  Sun, Moon, Menu, X, Lock, LogOut, ChevronLeft, ChevronRight,
+  Sun, Moon, Menu, X, Lock, LogOut, ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDashboard } from "../../context/DashboardContext";
-import { useAuth } from "../../context/AuthContext";
+import { useDashboard } from "../context/DashboardContext";
 
 function Monogram({ size = 28 }) {
   return (
@@ -23,10 +22,12 @@ function Monogram({ size = 28 }) {
   );
 }
 
-function AnimatedStreak({ value }) {
+function AnimatedStreak({ value, dark }) {
   return (
-    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium"
-      style={{ borderColor: "rgba(10,10,10,0.12)", color: "#0A0A0A" }}>
+    <div
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium"
+      style={{ borderColor: dark ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.12)", color: dark ? "#fff" : "#0A0A0A" }}
+    >
       <motion.span
         key={value}
         initial={{ scale: 1.4, opacity: 0.5 }}
@@ -55,13 +56,12 @@ const ADMIN_EMAIL = "shivenbindal@gmail.com";
 
 export default function DashboardLayout() {
   const {
-    dark, setDark,               // guessed setter name — verify against your context
-    selectedClass, setSelectedClass,
-    selectedSubject, streak,
+    user, handleLogout,
+    selectedClass, selectedSubject, handleClassChange,
+    dark, toggleDark,
+    streak,
   } = useDashboard();
-  const { user, logout, signOut } = useAuth(); // guessed method name — verify: 'logout' or 'signOut'
 
-  const navigate = useNavigate();
   const location = useLocation();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -82,21 +82,6 @@ export default function DashboardLayout() {
 
   const isAdmin = user?.email === ADMIN_EMAIL;
   const sidebarWidth = collapsed ? 76 : 240;
-
-  async function handleSignOut() {
-    try {
-      if (typeof logout === "function") await logout();
-      else if (typeof signOut === "function") await signOut();
-    } catch (e) {
-      console.error("Sign out failed:", e);
-    }
-    navigate("/");
-  }
-
-  function handleToggleTheme() {
-    if (typeof setDark === "function") setDark(!dark);
-  }
-
   const activeKey = NAV_ITEMS.find((i) => i.path && location.pathname.startsWith(i.path))?.key;
 
   return (
@@ -195,8 +180,10 @@ export default function DashboardLayout() {
               onClick={() => setProfileMenuOpen((v) => !v)}
               className="w-full flex items-center gap-2.5 px-2 py-2 rounded-full transition-colors"
             >
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-medium shrink-0 border-2"
-                style={{ borderColor: dark ? "#FFFFFF" : "#0A0A0A", color: dark ? "#FFFFFF" : "#0A0A0A" }}>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-medium shrink-0 border-2"
+                style={{ borderColor: dark ? "#FFFFFF" : "#0A0A0A", color: dark ? "#FFFFFF" : "#0A0A0A" }}
+              >
                 {(user?.displayName || "U")[0].toUpperCase()}
               </div>
               {!collapsed && (
@@ -204,7 +191,7 @@ export default function DashboardLayout() {
                   <p className={cn("text-[13px] font-medium truncate", dark ? "text-white" : "text-black")}>
                     {user?.displayName || "Student"}
                   </p>
-                  <p className="text-[11px] opacity-50 truncate">Class {selectedClass || "12"}</p>
+                  <p className="text-[11px] opacity-50 truncate">{selectedClass || "Class 12"}</p>
                 </div>
               )}
             </motion.button>
@@ -220,7 +207,7 @@ export default function DashboardLayout() {
                   style={{ borderColor: dark ? "rgba(255,255,255,0.1)" : "rgba(10,10,10,0.1)" }}
                 >
                   <button
-                    onClick={handleSignOut}
+                    onClick={handleLogout}
                     className={cn("w-full flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-black/[0.05]", dark ? "text-white" : "text-black")}
                   >
                     <LogOut size={15} />
@@ -340,7 +327,7 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-2 ml-auto">
             <div className="hidden sm:block">
-              <AnimatedStreak value={streak} />
+              <AnimatedStreak value={streak} dark={dark} />
             </div>
 
             <div className="relative hidden sm:block">
@@ -350,7 +337,7 @@ export default function DashboardLayout() {
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px]"
                 style={{ borderColor: dark ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.12)", color: dark ? "#fff" : "#0A0A0A" }}
               >
-                {selectedSubject ? `${selectedSubject} · ` : ""}Class {selectedClass || "12"}
+                {selectedSubject ? `${selectedSubject} · ` : ""}{selectedClass || "Class 12"}
                 <motion.span animate={{ rotate: classMenuOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                   <ChevronDown size={13} />
                 </motion.span>
@@ -362,19 +349,19 @@ export default function DashboardLayout() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.98 }}
                     transition={{ duration: 0.15 }}
-                    className={cn("absolute right-0 mt-2 w-28 rounded-2xl border shadow-lg overflow-hidden z-10", dark ? "bg-[#151515]" : "bg-white")}
+                    className={cn("absolute right-0 mt-2 w-32 rounded-2xl border shadow-lg overflow-hidden z-10", dark ? "bg-[#151515]" : "bg-white")}
                     style={{ borderColor: dark ? "rgba(255,255,255,0.1)" : "rgba(10,10,10,0.1)" }}
                   >
-                    {["9", "10", "11", "12"].map((c) => (
+                    {["Class 9", "Class 10", "Class 11", "Class 12"].map((c) => (
                       <button
                         key={c}
                         onClick={() => {
-                          if (typeof setSelectedClass === "function") setSelectedClass(c);
+                          handleClassChange(c);
                           setClassMenuOpen(false);
                         }}
                         className={cn("w-full text-left px-3 py-2 text-[13px] hover:bg-black/[0.05]", dark ? "text-white" : "text-black")}
                       >
-                        Class {c}
+                        {c}
                       </button>
                     ))}
                   </motion.div>
@@ -405,7 +392,7 @@ export default function DashboardLayout() {
             <motion.button
               whileHover={{ scale: 1.1, rotate: 20 }}
               whileTap={{ scale: 0.92 }}
-              onClick={handleToggleTheme}
+              onClick={toggleDark}
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/[0.05]"
             >
               <AnimatePresence mode="wait" initial={false}>
